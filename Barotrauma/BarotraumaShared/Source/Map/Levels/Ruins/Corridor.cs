@@ -1,6 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+#if CLIENT
+using Barotrauma.LegacyGUI;
+#endif
 
 namespace Barotrauma.RuinGeneration
 {

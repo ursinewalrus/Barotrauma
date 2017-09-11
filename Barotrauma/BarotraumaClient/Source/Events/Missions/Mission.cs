@@ -1,4 +1,5 @@
 ﻿using Barotrauma.Networking;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma
 {

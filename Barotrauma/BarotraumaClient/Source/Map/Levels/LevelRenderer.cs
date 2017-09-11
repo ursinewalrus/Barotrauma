@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Voronoi2;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma
 {

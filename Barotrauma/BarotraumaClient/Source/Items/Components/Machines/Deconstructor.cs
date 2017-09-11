@@ -1,6 +1,7 @@
 ﻿using Barotrauma.Networking;
 using Lidgren.Network;
 using Microsoft.Xna.Framework.Graphics;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma.Items.Components
 {

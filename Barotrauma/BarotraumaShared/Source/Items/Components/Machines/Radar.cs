@@ -3,6 +3,9 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
+#if CLIENT
+using Barotrauma.LegacyGUI;
+#endif
 
 namespace Barotrauma.Items.Components
 {

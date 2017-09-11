@@ -1,4 +1,8 @@
-﻿namespace Barotrauma
+﻿#if CLIENT
+using Barotrauma.LegacyGUI;
+#endif
+
+namespace Barotrauma
 {
     partial class Screen
     {

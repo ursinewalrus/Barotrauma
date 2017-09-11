@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+#if CLIENT
+using Barotrauma.LegacyGUI;
+#endif
 
 namespace Barotrauma.Networking
 {

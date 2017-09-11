@@ -2,6 +2,9 @@
 using System;
 using System.Globalization;
 using System.Xml.Linq;
+#if CLIENT
+using Barotrauma.LegacyGUI;
+#endif
 
 namespace Barotrauma.Items.Components
 {

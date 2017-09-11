@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Linq;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma
 {

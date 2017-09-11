@@ -1,4 +1,6 @@
-﻿namespace Barotrauma
+﻿using Barotrauma.LegacyGUI;
+
+namespace Barotrauma
 {
     partial class TraitorManager
     {

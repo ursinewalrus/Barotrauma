@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Linq;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma.Networking
 {

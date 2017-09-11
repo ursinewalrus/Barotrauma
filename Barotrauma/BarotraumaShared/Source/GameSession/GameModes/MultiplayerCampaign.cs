@@ -5,6 +5,9 @@ using System.Linq;
 using System.Xml.Linq;
 using Lidgren.Network;
 using System.Collections.Generic;
+#if CLIENT
+using Barotrauma.LegacyGUI;
+#endif
 
 namespace Barotrauma
 {

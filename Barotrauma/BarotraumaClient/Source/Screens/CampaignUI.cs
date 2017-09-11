@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Globalization;
 using System.Linq;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma
 {

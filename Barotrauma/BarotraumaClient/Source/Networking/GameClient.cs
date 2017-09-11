@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma.Networking
 {

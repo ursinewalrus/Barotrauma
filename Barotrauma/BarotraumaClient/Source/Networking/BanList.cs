@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Barotrauma.LegacyGUI;
 
 namespace Barotrauma.Networking
 {

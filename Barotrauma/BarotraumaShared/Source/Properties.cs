@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 
-
 namespace Barotrauma
 {
     [AttributeUsage(AttributeTargets.Property)]

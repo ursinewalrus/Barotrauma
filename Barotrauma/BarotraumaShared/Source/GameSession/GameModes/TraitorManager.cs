@@ -1,5 +1,8 @@
 ﻿using Barotrauma.Networking;
 using System.Collections.Generic;
+#if CLIENT
+using Barotrauma.LegacyGUI;
+#endif
 
 namespace Barotrauma
 {
