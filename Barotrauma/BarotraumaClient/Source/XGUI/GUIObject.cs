@@ -21,19 +21,25 @@ namespace Barotrauma.XGUI
 
         public GUIObject(string filename)
         {
+            components = new List<GUIComponent>();
+
             rect = new GUIRectangle(new Vector2(0.4f,0.45f), new Vector2(0.5f,0.6f));
 
             XDocument doc = ToolBox.TryLoadXml(filename);
 
-            foreach (XElement elem in doc.Elements())
+            XElement objElem = doc.Elements().First(); //TODO: don't just take the first element in the document, actually find a GUIObject tag
+            rect = new GUIRectangle(ToolBox.GetAttributeVector4(objElem, "rect", Vector4.Zero));
+
+            foreach (XElement elem in objElem.Elements())
             {
                 GUIComponent newComponent = null;
                 switch (elem.Name.ToString())
                 {
                     case "Sprite":
-                        newComponent = new SpriteComponent(elem);
+                        newComponent = new SpriteComponent(this,elem);
                         break;
                 }
+                if (newComponent != null) components.Add(newComponent);
             }
         }
 

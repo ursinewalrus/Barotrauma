@@ -15,6 +15,8 @@ namespace Barotrauma
 {
     class GameMain : Game
     {
+        public static XGUI.GUI XGUI;
+
         public static bool DebugDraw;
         
         public static FrameCounter FrameCounter;
@@ -108,13 +110,15 @@ namespace Barotrauma
         {
             get { return loadingScreenOpen; }
         }
-                                
+        
         public GameMain()
         {
             GraphicsDeviceManager = new GraphicsDeviceManager(this);
             Window.Title = "Barotrauma";
             
             Instance = this;
+
+            XGUI = new XGUI.GUI();
 
             Config = new GameSettings("config.xml");
             if (Config.WasGameUpdated)
@@ -224,6 +228,10 @@ namespace Barotrauma
 
             Hull.renderer = new WaterRenderer(base.GraphicsDevice, Content);
             TitleScreen.LoadState = 1.0f;
+
+            //TODO: remove
+            XGUI.GUIObject guiObj = new XGUI.GUIObject("Content/UI/TestXGUI.xml");
+            XGUI.objects.Add(guiObj);
         yield return CoroutineStatus.Running;
 
             GUI.LoadContent();
@@ -418,6 +426,10 @@ namespace Barotrauma
             {
                 Screen.Selected.Draw(deltaTime, base.GraphicsDevice, spriteBatch);
             }
+
+            spriteBatch.Begin();
+            XGUI.Draw(spriteBatch);
+            spriteBatch.End();
 
             if (!DebugDraw) return;
             if (GUIComponent.MouseOn!=null)

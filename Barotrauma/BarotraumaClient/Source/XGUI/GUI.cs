@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Barotrauma.XGUI
 {
@@ -83,10 +84,24 @@ namespace Barotrauma.XGUI
         public static ScalableFont Font, SmallFont, LargeFont;
 
         public List<GUIObject> objects;
+
+        public GUI()
+        {
+            objects = new List<GUIObject>();
+        }
+
         public void Update(float deltaTime) {
             foreach (GUIObject obj in objects)
             {
                 obj.Update(deltaTime);
+            }
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            foreach (GUIObject obj in objects)
+            {
+                obj.Draw(spriteBatch);
             }
         }
     }

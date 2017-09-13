@@ -15,8 +15,10 @@ namespace Barotrauma.XGUI
         public GUIRectangle srcRect;
         public GUIRectangle destRect;
 
-        public SpriteComponent(XElement elem)
+        public SpriteComponent(GUIObject creator,XElement elem)
         {
+            owner = creator;
+
             texture = TextureLoader.FromFile(ToolBox.GetAttributeString(elem,"texture",""));
             srcRect = new GUIRectangle(ToolBox.GetAttributeVector4(elem,"src",Vector4.Zero));
             destRect = new GUIRectangle(ToolBox.GetAttributeVector4(elem, "dest", Vector4.Zero));
