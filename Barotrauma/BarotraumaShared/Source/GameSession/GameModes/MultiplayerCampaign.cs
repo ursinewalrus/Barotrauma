@@ -69,7 +69,7 @@ namespace Barotrauma
 
             campaignSetupUI.StartNewGame = (Submarine sub, string saveName, string mapSeed) =>
             {
-                GameMain.GameSession = new GameSession(sub, saveName, GameModePreset.list.Find(g => g.Name == "Campaign"));
+                GameMain.GameSession = new GameSession(new Submarine(sub.FilePath, ""), saveName, GameModePreset.list.Find(g => g.Name == "Campaign"));
                 var campaign = ((MultiplayerCampaign)GameMain.GameSession.GameMode);
                 campaign.GenerateMap(mapSeed);
                 campaign.map.OnLocationSelected += (loc, connection) => { campaign.LastUpdateID++; };
@@ -145,6 +145,18 @@ namespace Barotrauma
 
                 GameMain.GameSession.EndRound("");
 
+                //TODO: save player inventories between mp campaign rounds
+
+                //remove all items that are in someone's inventory
+                foreach (Character c in Character.CharacterList)
+                {
+                    if (c.Inventory == null) continue;
+                    foreach (Item item in c.Inventory.Items)
+                    {
+                        if (item != null) item.Remove();
+                    }
+                }
+
                 if (success)
                 {
                     bool atEndPosition = Submarine.MainSub.AtEndPosition;
@@ -170,11 +182,9 @@ namespace Barotrauma
                     SaveUtil.SaveGame(GameMain.GameSession.SavePath);
                 }
 
-
                 if (!success)
                 {
-                   /* var summaryScreen = GUIMessageBox.VisibleBox;
-
+                    var summaryScreen = GUIMessageBox.VisibleBox;
                     if (summaryScreen != null)
                     {
                         summaryScreen = summaryScreen.children[0];
@@ -187,16 +197,13 @@ namespace Barotrauma
                         var quitButton = new GUIButton(new Rectangle(0, 0, 100, 30), "Quit", Alignment.BottomRight, "", summaryScreen);
                         quitButton.OnClicked += GameMain.LobbyScreen.QuitToMainMenu;
                         quitButton.OnClicked += (GUIButton button, object obj) => { GUIMessageBox.MessageBoxes.Remove(GUIMessageBox.VisibleBox); return true; };
-                    }*/
+                    }
                 }
             }
-            
-            for (int i = Character.CharacterList.Count - 1; i >= 0; i--)
+            else
             {
-                Character.CharacterList[i].Remove();
+                GameMain.GameSession.EndRound("");
             }
-
-            Submarine.Unload();
         }
 
         public static MultiplayerCampaign Load(XElement element)
@@ -263,19 +270,17 @@ namespace Barotrauma
             UInt16 selectedLocIndex = msg.ReadUInt16();
 
             MultiplayerCampaign campaign = GameMain.GameSession?.GameMode as MultiplayerCampaign;
-            if (campaign == null)
+            if (campaign == null || mapSeed != campaign.Map.Seed)
             {
                 string savePath = SaveUtil.CreateSavePath(SaveUtil.SaveType.Multiplayer);
                 
-                GameMain.GameSession = new GameSession(
-                    null, //TODO: set the sub (after receiving the save file?)
-                    savePath, GameModePreset.list.Find(g => g.Name == "Campaign"));
+                GameMain.GameSession = new GameSession(null, savePath, GameModePreset.list.Find(g => g.Name == "Campaign"));
 
                 campaign = ((MultiplayerCampaign)GameMain.GameSession.GameMode);
                 campaign.GenerateMap(mapSeed);
-
-                GameMain.NetLobbyScreen.ToggleCampaignMode(true);
             }
+
+            GameMain.NetLobbyScreen.ToggleCampaignMode(true);
             if (NetIdUtils.IdMoreRecent(campaign.lastUpdateID, updateID)) return;
 
             //server has a newer save file
