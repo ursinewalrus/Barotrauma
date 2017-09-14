@@ -12,6 +12,8 @@ namespace Barotrauma.XGUI
     {
         public Vector2 ul;
         public Vector2 br;
+        public Vector2 ulFixed;
+        public Vector2 brFixed;
 
         public float X
         {
@@ -36,16 +38,19 @@ namespace Barotrauma.XGUI
 
         public GUIRectangle(Vector2 a, Vector2 b)
         {
+            ulFixed = Vector2.Zero; brFixed = Vector2.Zero;
             ul = a; br = b; Repair();
         }
 
         public GUIRectangle(float ax,float ay,float bx,float by)
         {
+            ulFixed = Vector2.Zero; brFixed = Vector2.Zero;
             ul = new Vector2(ax, ay); br = new Vector2(bx, by); Repair();
         }
 
         public GUIRectangle(Vector4 vec4)
         {
+            ulFixed = Vector2.Zero; brFixed = Vector2.Zero;
             ul = new Vector2(vec4.X, vec4.Y); br = new Vector2(vec4.Z, vec4.W); Repair();
         }
 
@@ -64,18 +69,21 @@ namespace Barotrauma.XGUI
         
         public static Rectangle ScaleToXNARect(GUIRectangle guiRect,Rectangle xnaRect)
         {
-            return new Rectangle((int)((float)xnaRect.X + (guiRect.ul.X * xnaRect.Width)),
-                                 (int)((float)xnaRect.Y + (guiRect.ul.Y * xnaRect.Height)),
-                                 (int)((guiRect.br.X - guiRect.ul.X) * xnaRect.Width),
-                                 (int)((guiRect.br.Y - guiRect.ul.Y) * xnaRect.Height));
+            return new Rectangle((int)((float)xnaRect.X + (guiRect.ul.X * xnaRect.Width) + guiRect.ulFixed.X),
+                                 (int)((float)xnaRect.Y + (guiRect.ul.Y * xnaRect.Height) + guiRect.ulFixed.Y),
+                                 (int)((guiRect.br.X - guiRect.ul.X) * xnaRect.Width - guiRect.ulFixed.X + guiRect.brFixed.X),
+                                 (int)((guiRect.br.Y - guiRect.ul.Y) * xnaRect.Height - guiRect.ulFixed.Y + guiRect.brFixed.Y));
         }
 
         public static GUIRectangle ScaleToOuterRect(GUIRectangle innerRect,GUIRectangle outerRect)
         {
-            return new GUIRectangle(outerRect.ul.X + (innerRect.ul.X * outerRect.Width),
+            GUIRectangle retVal = new GUIRectangle(outerRect.ul.X + (innerRect.ul.X * outerRect.Width),
                                     outerRect.ul.Y + (innerRect.ul.Y * outerRect.Height),
                                     outerRect.ul.X + (innerRect.br.X * outerRect.Width),
                                     outerRect.ul.Y + (innerRect.br.Y * outerRect.Height));
+            retVal.ulFixed = innerRect.ulFixed;
+            retVal.brFixed = innerRect.brFixed;
+            return retVal;
         }
     }
 
