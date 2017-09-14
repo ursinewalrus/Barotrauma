@@ -21,7 +21,7 @@ namespace Barotrauma.XGUI
         public string name;
         public GUIRectangle rect;
 
-        public GUIObject(GUI creator,string filename)
+        public GUIObject(GUI creator,XElement objElem)
         {
             owner = creator;
 
@@ -29,11 +29,7 @@ namespace Barotrauma.XGUI
             attribs = new Dictionary<string, string>();
 
             rect = new GUIRectangle(0,0,0,0);
-
-            XDocument doc = ToolBox.TryLoadXml(filename);
-
-            XElement objElem = doc.Elements().First(); //TODO: don't just take the first element in the document, actually find a GUIObject tag
-
+            
             string templateName = "";
 
             foreach (XAttribute attribute in objElem.Attributes())

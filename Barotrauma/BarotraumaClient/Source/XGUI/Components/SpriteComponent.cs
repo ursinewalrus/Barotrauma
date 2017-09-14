@@ -11,6 +11,8 @@ namespace Barotrauma.XGUI
 {
     public class SpriteComponent : GUIComponent
     {
+        private static Dictionary<string,Texture2D> loadedTextures = null;
+
         public Texture2D texture;
         public GUIRectangle srcRect;
         public GUIRectangle destRect;
@@ -65,7 +67,26 @@ namespace Barotrauma.XGUI
         {
             owner = creator;
 
-            texture = TextureLoader.FromFile(ToolBox.GetAttributeString(elem,"texture",""));
+            string texName = ToolBox.GetAttributeString(elem, "texture", "");
+            bool textureExists = false;
+            if (loadedTextures == null)
+            {
+                loadedTextures = new Dictionary<string,Texture2D>();
+            }
+            else
+            {
+                if (loadedTextures.ContainsKey(texName))
+                {
+                    texture = loadedTextures[texName];
+                    textureExists = true;
+                }
+            }
+
+            if (!textureExists)
+            {
+                texture = TextureLoader.FromFile(texName);
+                if (texture != null) loadedTextures.Add(texName, texture);
+            }
             srcRect = ParseRect(ToolBox.GetAttributeString(elem, "src", "0,0,0,0"));
             destRect = ParseRect(ToolBox.GetAttributeString(elem, "dest", "0,0,0,0"));
         }

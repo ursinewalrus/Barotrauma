@@ -92,10 +92,11 @@ namespace Barotrauma.XGUI
     {
         public Dictionary<string, ScalableFont> fonts;
         public GraphicsDevice graphicsDevice;
-
-        public List<GUIObject> objects;
         
         public Dictionary<string,XElement> templates;
+        public Dictionary<string, List<GUIObject>> menus;
+
+        public string currentMenu = "";
 
         public void LoadTemplates(string filename)
         {
@@ -108,11 +109,27 @@ namespace Barotrauma.XGUI
             }
         }
 
+        public void LoadMenus(string filename)
+        {
+            XDocument doc = ToolBox.TryLoadXml(filename);
+            foreach (XElement elem in doc.Elements())
+            {
+                if (elem.Name.ToString() != "GUIMenu") continue;
+
+                List<GUIObject> newMenu = new List<GUIObject>();
+                foreach (XElement objElem in elem.Elements())
+                {
+                    newMenu.Add(new GUIObject(this, objElem));
+                }
+                menus.Add(ToolBox.GetAttributeString(elem,"name","<no name>"),newMenu);
+            }
+        }
+
         public GUI()
         {
-            objects = new List<GUIObject>();
             fonts = new Dictionary<string, ScalableFont>();
             templates = new Dictionary<string, XElement>();
+            menus = new Dictionary<string, List<GUIObject>>();
         }
 
         public void Init()
@@ -121,7 +138,8 @@ namespace Barotrauma.XGUI
         }
 
         public void Update(float deltaTime) {
-            foreach (GUIObject obj in objects)
+            if (!menus.ContainsKey(currentMenu)) return;
+            foreach (GUIObject obj in menus[currentMenu])
             {
                 obj.Update(deltaTime);
             }
@@ -129,7 +147,8 @@ namespace Barotrauma.XGUI
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            foreach (GUIObject obj in objects)
+            if (!menus.ContainsKey(currentMenu)) return;
+            foreach (GUIObject obj in menus[currentMenu])
             {
                 obj.Draw(spriteBatch);
             }

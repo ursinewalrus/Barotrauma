@@ -232,11 +232,11 @@ namespace Barotrauma
             Hull.renderer = new WaterRenderer(base.GraphicsDevice, Content);
             TitleScreen.LoadState = 1.0f;
 
-            //TODO: remove
+            //TODO: cleanup?
             XGUI.LoadTemplates("Content/UI/Templates/Button.xml");
 
-            XGUI.GUIObject guiObj = new XGUI.GUIObject(XGUI,"Content/UI/TestXGUI.xml");
-            XGUI.objects.Add(guiObj);
+            XGUI.LoadMenus("Content/UI/Menus/Main.xml");
+            XGUI.currentMenu = "main";
         yield return CoroutineStatus.Running;
 
             GUI.LoadContent();
