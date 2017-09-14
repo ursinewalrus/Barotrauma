@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Xml.Linq;
 
 namespace Barotrauma.XGUI
 {
@@ -69,10 +70,10 @@ namespace Barotrauma.XGUI
         
         public static Rectangle ScaleToXNARect(GUIRectangle guiRect,Rectangle xnaRect)
         {
-            return new Rectangle((int)((float)xnaRect.X + (guiRect.ul.X * xnaRect.Width) + guiRect.ulFixed.X),
-                                 (int)((float)xnaRect.Y + (guiRect.ul.Y * xnaRect.Height) + guiRect.ulFixed.Y),
-                                 (int)((guiRect.br.X - guiRect.ul.X) * xnaRect.Width - guiRect.ulFixed.X + guiRect.brFixed.X),
-                                 (int)((guiRect.br.Y - guiRect.ul.Y) * xnaRect.Height - guiRect.ulFixed.Y + guiRect.brFixed.Y));
+            return new Rectangle((int)Math.Round((float)xnaRect.X + (guiRect.ul.X * xnaRect.Width) + guiRect.ulFixed.X),
+                                 (int)Math.Round((float)xnaRect.Y + (guiRect.ul.Y * xnaRect.Height) + guiRect.ulFixed.Y),
+                                 (int)Math.Round((guiRect.br.X - guiRect.ul.X) * xnaRect.Width - guiRect.ulFixed.X + guiRect.brFixed.X),
+                                 (int)Math.Round((guiRect.br.Y - guiRect.ul.Y) * xnaRect.Height - guiRect.ulFixed.Y + guiRect.brFixed.Y));
         }
 
         public static GUIRectangle ScaleToOuterRect(GUIRectangle innerRect,GUIRectangle outerRect)
@@ -89,13 +90,34 @@ namespace Barotrauma.XGUI
 
     public class GUI
     {
-        public static ScalableFont Font, SmallFont, LargeFont;
+        public Dictionary<string, ScalableFont> fonts;
+        public GraphicsDevice graphicsDevice;
 
         public List<GUIObject> objects;
+        
+        public Dictionary<string,XElement> templates;
+
+        public void LoadTemplates(string filename)
+        {
+            XDocument doc = ToolBox.TryLoadXml(filename);
+            foreach (XElement elem in doc.Elements())
+            {
+                if (elem.Name.ToString() != "GUITemplate") continue;
+
+                templates.Add(ToolBox.GetAttributeString(elem,"name","<no name>"),elem);
+            }
+        }
 
         public GUI()
         {
             objects = new List<GUIObject>();
+            fonts = new Dictionary<string, ScalableFont>();
+            templates = new Dictionary<string, XElement>();
+        }
+
+        public void Init()
+        {
+            fonts.Add("default", new ScalableFont("Content/Exo2-Medium.otf",(uint)(14*GameMain.GraphicsHeight/720),graphicsDevice));
         }
 
         public void Update(float deltaTime) {

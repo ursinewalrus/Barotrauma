@@ -12,31 +12,60 @@ namespace Barotrauma.XGUI
 {
     public class GUIObject
     {
+        public GUI owner;
+
         public List<GUIComponent> components;
-        public List<Pair<string, string>> attribs;
+        public Dictionary<string,string> attribs;
         public List<string> queuedEvents;
 
         public string name;
         public GUIRectangle rect;
 
-        public GUIObject(string filename)
+        public GUIObject(GUI creator,string filename)
         {
-            components = new List<GUIComponent>();
+            owner = creator;
 
-            rect = new GUIRectangle(new Vector2(0.4f,0.45f), new Vector2(0.5f,0.6f));
+            components = new List<GUIComponent>();
+            attribs = new Dictionary<string, string>();
+
+            rect = new GUIRectangle(0,0,0,0);
 
             XDocument doc = ToolBox.TryLoadXml(filename);
 
             XElement objElem = doc.Elements().First(); //TODO: don't just take the first element in the document, actually find a GUIObject tag
-            rect = new GUIRectangle(ToolBox.GetAttributeVector4(objElem, "rect", Vector4.Zero));
 
-            foreach (XElement elem in objElem.Elements())
+            string templateName = "";
+
+            foreach (XAttribute attribute in objElem.Attributes())
+            {
+                switch (attribute.Name.ToString())
+                {
+                    case "template":
+                        templateName = attribute.Value;
+                        break;
+                    case "rect":
+                        rect = new GUIRectangle(ToolBox.ParseToVector4(attribute.Value));
+                        break;
+                    default:
+                        if (!attribs.ContainsKey(attribute.Name.ToString())) attribs.Add(attribute.Name.ToString(), attribute.Value);
+                        else attribs[attribute.Name.ToString()] = attribute.Value;
+                        break;
+                }
+            }
+            
+            if (templateName == "") return;
+
+            XElement templateElem = owner.templates[templateName];
+            foreach (XElement elem in templateElem.Elements())
             {
                 GUIComponent newComponent = null;
                 switch (elem.Name.ToString())
                 {
                     case "Sprite":
                         newComponent = new SpriteComponent(this,elem);
+                        break;
+                    case "Text":
+                        newComponent = new TextComponent(this, elem);
                         break;
                 }
                 if (newComponent != null) components.Add(newComponent);

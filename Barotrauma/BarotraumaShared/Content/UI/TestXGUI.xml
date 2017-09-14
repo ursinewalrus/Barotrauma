@@ -1,11 +1,1 @@
-<GUIObject rect="0.4,0.4,0.6,0.6">
-    <!--body--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.073+3px,0.793-3px,0.112-3px" dest="3px,0,1-3px,1-3px" />
-    <!--ul--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.073,0.667+3px,0.073+3px" dest="0,0,3px,3px" />
-    <!--bl--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.112-3px,0.667+3px,0.112" dest="0,1-3px,3px,1" />
-    <!--left--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.073+3px,0.667+3px,0.112-3px" dest="0,3px,3px,1-3px" />
-    <!--top--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.073,0.793-3px,0.073+3px" dest="3px,0,1-3px,3px" />
-    <!--bottom--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.112-3px,0.793-3px,0.112" dest="3px,1-3px,1-3px,1" />
-    <!--ur--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.073,0.793,0.073+3px" dest="1-3px,0,1,3px" />
-    <!--br--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.112-3px,0.793,0.112" dest="1-3px,1-3px,1,1" />
-    <!--right--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.073+3px,0.793,0.112-3px" dest="1-3px,3px,1,1-3px" />
-</GUIObject>
+<GUIObject template="Button" rect="0.4,0.45,0.6,0.55" text="This is a test!" />

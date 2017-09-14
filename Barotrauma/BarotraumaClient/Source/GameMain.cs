@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using Barotrauma.LegacyGUI;
+using System.Xml.Linq;
 
 namespace Barotrauma
 {
@@ -216,6 +217,8 @@ namespace Barotrauma
             {
                 DebugConsole.NewMessage("LOADING COROUTINE", Color.Lime);
             }
+            XGUI.graphicsDevice = base.GraphicsDevice;
+            XGUI.Init();
             GUI.GraphicsDevice = base.GraphicsDevice;
             GUI.Init(Content);
 
@@ -230,7 +233,9 @@ namespace Barotrauma
             TitleScreen.LoadState = 1.0f;
 
             //TODO: remove
-            XGUI.GUIObject guiObj = new XGUI.GUIObject("Content/UI/TestXGUI.xml");
+            XGUI.LoadTemplates("Content/UI/Templates/Button.xml");
+
+            XGUI.GUIObject guiObj = new XGUI.GUIObject(XGUI,"Content/UI/TestXGUI.xml");
             XGUI.objects.Add(guiObj);
         yield return CoroutineStatus.Running;
 

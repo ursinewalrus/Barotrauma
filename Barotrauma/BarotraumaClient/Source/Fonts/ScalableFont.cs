@@ -72,7 +72,7 @@ namespace Barotrauma
 
             FontList.Add(this);
         }
-
+        
         /// <summary>
         /// Renders the font into at least one texture atlas, which is simply a collection of all glyphs in the ranges defined by charRanges.
         /// Don't call this too often or with very large sizes.
