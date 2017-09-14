@@ -10,22 +10,23 @@ using System.Xml.Linq;
 
 namespace Barotrauma.XGUI
 {
-    public class GUIObject
+    public class GUIObject : GUIEntity
     {
-        public GUI owner;
-
-        public List<GUIComponent> components;
+        public GUI XGUI;
+        
         public Dictionary<string,string> attribs;
         public List<string> queuedEvents;
 
         public string name;
-        public GUIRectangle rect;
+
+        public bool isMouseOn = false;
 
         public GUIObject(GUI creator,XElement objElem)
         {
-            owner = creator;
-
-            components = new List<GUIComponent>();
+            owner = null;
+            
+            XGUI = creator;
+            
             attribs = new Dictionary<string, string>();
 
             rect = new GUIRectangle(0,0,0,0);
@@ -51,37 +52,8 @@ namespace Barotrauma.XGUI
             
             if (templateName == "") return;
 
-            XElement templateElem = owner.templates[templateName];
-            foreach (XElement elem in templateElem.Elements())
-            {
-                GUIComponent newComponent = null;
-                switch (elem.Name.ToString())
-                {
-                    case "Sprite":
-                        newComponent = new SpriteComponent(this,elem);
-                        break;
-                    case "Text":
-                        newComponent = new TextComponent(this, elem);
-                        break;
-                }
-                if (newComponent != null) components.Add(newComponent);
-            }
-        }
-
-        public void Update(float deltaTime)
-        {
-            foreach (GUIComponent component in components)
-            {
-                component.Update(deltaTime);
-            }
-        }
-
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            foreach (GUIComponent component in components)
-            {
-                component.Draw(spriteBatch);
-            }
+            XElement templateElem = XGUI.templates[templateName];
+            CreateChildrenComponents(templateElem);
         }
     }
 }

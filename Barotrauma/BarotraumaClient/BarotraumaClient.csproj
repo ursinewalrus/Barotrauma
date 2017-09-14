@@ -70,10 +70,12 @@
     <Compile Include="Source\Characters\AI\HumanAIController.cs" />
     <Compile Include="Source\Characters\Animation\Ragdoll.cs" />
     <Compile Include="Source\Characters\Attack.cs" />
+    <Compile Include="Source\XGUI\Components\CondComponent.cs" />
     <Compile Include="Source\XGUI\Components\SpriteComponent.cs" />
     <Compile Include="Source\XGUI\Components\TextComponent.cs" />
     <Compile Include="Source\XGUI\GUI.cs" />
     <Compile Include="Source\XGUI\Components\GUIComponent.cs" />
+    <Compile Include="Source\XGUI\GUIEntity.cs" />
     <Compile Include="Source\XGUI\GUIObject.cs" />
     <Compile Include="Source\Map\Levels\BackgroundSprite\BackgroundCreature.cs" />
     <Compile Include="Source\Map\Levels\BackgroundSprite\BackgroundCreatureManager.cs" />

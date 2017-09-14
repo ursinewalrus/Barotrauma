@@ -63,10 +63,8 @@ namespace Barotrauma.XGUI
             return retVal;
         }
 
-        public SpriteComponent(GUIObject creator,XElement elem)
+        public SpriteComponent(GUIEntity creator,XElement elem) : base(creator, elem)
         {
-            owner = creator;
-
             string texName = ToolBox.GetAttributeString(elem, "texture", "");
             bool textureExists = false;
             if (loadedTextures == null)
@@ -95,9 +93,11 @@ namespace Barotrauma.XGUI
         {
             //TODO: precalculate
             Rectangle xnaSrcRect = GUIRectangle.ScaleToXNARect(srcRect, texture.Bounds);
-            Rectangle xnaDestRect = GUIRectangle.ScaleToXNARect(GUIRectangle.ScaleToOuterRect(destRect,owner.rect), new Rectangle(0, 0, GameMain.GraphicsWidth, GameMain.GraphicsHeight));
+            Rectangle xnaDestRect = GUIRectangle.ScaleToXNARect(GUIRectangle.ScaleToOuterRect(destRect,owner.GetScaledRect()), new Rectangle(0, 0, GameMain.GraphicsWidth, GameMain.GraphicsHeight));
 
             spriteBatch.Draw(texture, xnaDestRect, xnaSrcRect, Color.White);
+
+            base.Draw(spriteBatch);
         }
     }
 }

@@ -70,10 +70,14 @@ namespace Barotrauma.XGUI
         
         public static Rectangle ScaleToXNARect(GUIRectangle guiRect,Rectangle xnaRect)
         {
-            return new Rectangle((int)Math.Round((float)xnaRect.X + (guiRect.ul.X * xnaRect.Width) + guiRect.ulFixed.X),
-                                 (int)Math.Round((float)xnaRect.Y + (guiRect.ul.Y * xnaRect.Height) + guiRect.ulFixed.Y),
-                                 (int)Math.Round((guiRect.br.X - guiRect.ul.X) * xnaRect.Width - guiRect.ulFixed.X + guiRect.brFixed.X),
-                                 (int)Math.Round((guiRect.br.Y - guiRect.ul.Y) * xnaRect.Height - guiRect.ulFixed.Y + guiRect.brFixed.Y));
+            Vector2 ul = new Vector2((float)Math.Round((float)xnaRect.X + (guiRect.ul.X * xnaRect.Width) + guiRect.ulFixed.X),
+                                     (float)Math.Round((float)xnaRect.Y + (guiRect.ul.Y * xnaRect.Height) + guiRect.ulFixed.Y));
+            Vector2 br = new Vector2((float)Math.Round((float)xnaRect.X + (guiRect.br.X * xnaRect.Width) + guiRect.brFixed.X),
+                                     (float)Math.Round((float)xnaRect.Y + (guiRect.br.Y * xnaRect.Height) + guiRect.brFixed.Y));
+            return new Rectangle((int)ul.X,
+                                 (int)ul.Y,
+                                 (int)(br.X-ul.X),
+                                 (int)(br.Y-ul.Y));
         }
 
         public static GUIRectangle ScaleToOuterRect(GUIRectangle innerRect,GUIRectangle outerRect)
@@ -139,6 +143,23 @@ namespace Barotrauma.XGUI
 
         public void Update(float deltaTime) {
             if (!menus.ContainsKey(currentMenu)) return;
+
+            foreach (GUIObject obj in menus[currentMenu])
+            {
+                obj.isMouseOn = false;
+            }
+
+            for (int i=menus[currentMenu].Count-1;i>=0;i--)
+            {
+                GUIObject obj = menus[currentMenu][i];
+                Rectangle xnaRect = GUIRectangle.ScaleToXNARect(obj.rect, new Rectangle(0, 0, GameMain.GraphicsWidth, GameMain.GraphicsHeight));
+                if (xnaRect.Contains(PlayerInput.MousePosition))
+                {
+                    obj.isMouseOn = true;
+                    break;
+                }
+            }
+
             foreach (GUIObject obj in menus[currentMenu])
             {
                 obj.Update(deltaTime);

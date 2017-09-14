@@ -4,14 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
+using System.Xml.Linq;
 
 namespace Barotrauma.XGUI
 {
-    public abstract class GUIComponent
+    public abstract class GUIComponent : GUIEntity
     {
-        protected GUIObject owner;
+        public GUIComponent(GUIEntity creator,XElement elem)
+        {
+            owner = creator;
 
-        public virtual void Draw(SpriteBatch spriteBatch) { }
-        public virtual void Update(float deltaTime) { }
+            CreateChildrenComponents(elem);
+        }
     }
 }
