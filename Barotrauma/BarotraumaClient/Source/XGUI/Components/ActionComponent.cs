@@ -15,8 +15,6 @@ namespace Barotrauma.XGUI
 
         public ActionComponent(GUIEntity creator, XElement elem) : base(creator,elem)
         {
-            rect = new GUIRectangle(0, 0, 1, 1);
-
             action = ToolBox.GetAttributeString(elem, "action", "");
             parameters = "";
 
@@ -40,7 +38,7 @@ namespace Barotrauma.XGUI
             switch (action)
             {
                 case "ChangeMenu":
-                    GetParentObject().XGUI.currentMenu = parameters;
+                    GetXGUI().ChangeMenu(parameters);
                     break;
             }
 

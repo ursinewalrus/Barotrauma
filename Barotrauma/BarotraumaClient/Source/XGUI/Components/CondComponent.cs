@@ -14,8 +14,6 @@ namespace Barotrauma.XGUI
 
         public CondComponent(GUIEntity creator, XElement elem) : base(creator,elem)
         {
-            rect = new GUIRectangle(0, 0, 1, 1);
-
             conditions = new Dictionary<string, string>();
             foreach(XAttribute attribute in elem.Attributes())
             {

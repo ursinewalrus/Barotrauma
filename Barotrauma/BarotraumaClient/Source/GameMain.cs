@@ -234,6 +234,7 @@ namespace Barotrauma
 
             //TODO: cleanup?
             XGUI.LoadTemplates("Content/UI/Templates/Button.xml");
+            XGUI.LoadTemplates("Content/UI/Templates/Frame.xml");
 
             XGUI.LoadMenus("Content/UI/Menus/Main.xml");
             XGUI.currentMenu = "main";

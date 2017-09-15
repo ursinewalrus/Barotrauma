@@ -31,7 +31,7 @@ namespace Barotrauma.XGUI
             }
 
             rect = new GUIRectangle(ToolBox.GetAttributeVector4(elem, "rect", Vector4.Zero));
-            font = parentObject.XGUI.fonts[ToolBox.GetAttributeString(elem, "font", "default")];
+            font = GetXGUI().fonts[ToolBox.GetAttributeString(elem, "font", "default")];
 
             halign = ToolBox.GetAttributeString(elem, "halign", "left");
             valign = ToolBox.GetAttributeString(elem, "valign", "top");

@@ -14,6 +14,15 @@ namespace Barotrauma.XGUI
         public GUIEntity owner;
         public List<GUIEntity> children;
 
+        public GUIEntity(GUIEntity creator, XElement elem)
+        {
+            rect = new GUIRectangle(0, 0, 1, 1);
+
+            owner = creator;
+
+            if (elem!=null) CreateChildrenEntities(elem);
+        }
+
         public virtual void Update(float deltaTime)
         {
             children.ForEach(c => c.Update(deltaTime));
@@ -38,13 +47,27 @@ namespace Barotrauma.XGUI
             return parentObject;
         }
 
+        public GUI GetXGUI()
+        {
+            if (this is GUI) return (this as GUI);
+
+            GUIEntity parentEntity = owner;
+            while (!(parentEntity is GUI))
+            {
+                parentEntity = parentEntity.owner;
+            }
+            GUI parentObject = parentEntity as GUI;
+
+            return parentObject;
+        }
+
         public GUIRectangle GetScaledRect()
         {
             if (owner == null) return rect;
             return GUIRectangle.ScaleToOuterRect(rect, owner.GetScaledRect());
         }
 
-        public void CreateChildrenComponents(XElement templateElem)
+        public void CreateChildrenEntities(XElement templateElem)
         {
             if (children == null)
             {
@@ -53,23 +76,26 @@ namespace Barotrauma.XGUI
 
             foreach (XElement elem in templateElem.Elements())
             {
-                GUIComponent newComponent = null;
+                GUIEntity newEntity = null;
                 switch (elem.Name.ToString())
                 {
+                    case "Object":
+                        newEntity = new GUIObject(this, elem);
+                        break;
                     case "Cond":
-                        newComponent = new CondComponent(this, elem);
+                        newEntity = new CondComponent(this, elem);
                         break;
                     case "Action":
-                        newComponent = new ActionComponent(this, elem);
+                        newEntity = new ActionComponent(this, elem);
                         break;
                     case "Sprite":
-                        newComponent = new SpriteComponent(this, elem);
+                        newEntity = new SpriteComponent(this, elem);
                         break;
                     case "Text":
-                        newComponent = new TextComponent(this, elem);
+                        newEntity = new TextComponent(this, elem);
                         break;
                 }
-                if (newComponent != null) children.Add(newComponent);
+                if (newEntity != null) children.Add(newEntity);
             }
         }
     }

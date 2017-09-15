@@ -92,7 +92,7 @@ namespace Barotrauma.XGUI
         }
     }
 
-    public class GUI
+    public class GUI : GUIEntity
     {
         public Dictionary<string, ScalableFont> fonts;
         public GraphicsDevice graphicsDevice;
@@ -109,7 +109,7 @@ namespace Barotrauma.XGUI
             if (root.Name != "GUI") return;
             foreach (XElement elem in root.Elements())
             {
-                if (elem.Name.ToString() != "GUITemplate") continue;
+                if (elem.Name.ToString() != "Template") continue;
 
                 templates.Add(ToolBox.GetAttributeString(elem,"name","<no name>"),elem);
             }
@@ -122,7 +122,7 @@ namespace Barotrauma.XGUI
             if (root.Name != "GUI") return;
             foreach (XElement elem in root.Elements())
             {
-                if (elem.Name.ToString() != "GUIMenu") continue;
+                if (elem.Name.ToString() != "Menu") continue;
 
                 List<GUIObject> newMenu = new List<GUIObject>();
                 foreach (XElement objElem in elem.Elements())
@@ -133,7 +133,7 @@ namespace Barotrauma.XGUI
             }
         }
 
-        public GUI()
+        public GUI() : base(null,null)
         {
             fonts = new Dictionary<string, ScalableFont>();
             templates = new Dictionary<string, XElement>();
@@ -145,7 +145,7 @@ namespace Barotrauma.XGUI
             fonts.Add("default", new ScalableFont("Content/Exo2-Medium.otf",(uint)(14*GameMain.GraphicsHeight/720),graphicsDevice));
         }
 
-        public void Update(float deltaTime) {
+        public override void Update(float deltaTime) {
             if (!menus.ContainsKey(currentMenu)) return;
 
             foreach (GUIObject obj in menus[currentMenu])
@@ -170,13 +170,18 @@ namespace Barotrauma.XGUI
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             if (!menus.ContainsKey(currentMenu)) return;
             foreach (GUIObject obj in menus[currentMenu])
             {
                 obj.Draw(spriteBatch);
             }
+        }
+
+        public void ChangeMenu(string parameters)
+        {
+            if (menus.ContainsKey(parameters)) currentMenu = parameters;
         }
     }
 }

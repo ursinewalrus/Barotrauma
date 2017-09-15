@@ -12,8 +12,6 @@ namespace Barotrauma.XGUI
 {
     public class GUIObject : GUIEntity
     {
-        public GUI XGUI;
-        
         public Dictionary<string,string> attribs;
         public List<string> queuedEvents;
 
@@ -21,12 +19,8 @@ namespace Barotrauma.XGUI
 
         public bool isMouseOn = false;
 
-        public GUIObject(GUI creator,XElement objElem)
+        public GUIObject(GUIEntity creator,XElement objElem) : base(creator, objElem)
         {
-            owner = null;
-            
-            XGUI = creator;
-            
             attribs = new Dictionary<string, string>();
 
             rect = new GUIRectangle(0,0,0,0);
@@ -53,8 +47,8 @@ namespace Barotrauma.XGUI
             
             if (templateName == "") return;
 
-            XElement templateElem = XGUI.templates[templateName];
-            CreateChildrenComponents(templateElem);
+            XElement templateElem = GetXGUI().templates[templateName];
+            CreateChildrenEntities(templateElem);
         }
     }
 }

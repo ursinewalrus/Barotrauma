@@ -1,5 +1,5 @@
 <GUI>
-    <GUITemplate name="Button">
+    <Template name="Button">
         <Cond Hover="false">
             <!--body--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.072+3px,0.793-3px,0.112-3px" dest="3px,0,1-3px,1-3px" />
             <!--ul--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.072,0.667+3px,0.072+3px" dest="0,0,3px,3px" />
@@ -27,5 +27,5 @@
                 <Action action="$action" />
             </Cond>
         </Cond>
-    </GUITemplate>
+    </Template>
 </GUI>

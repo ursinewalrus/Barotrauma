@@ -1,0 +1,10 @@
+<GUI>
+    <Template name="Frame">
+        <!--body--><Sprite texture="Content/UI/UI_Atlas.png" src="0.031+9px,0.530+17px,0.441-9px,0.742-17px" dest="9px,17px,1-9px,1-17px" />
+        <!--left--><Sprite texture="Content/UI/UI_Atlas.png" src="0.031,0.530+17px,0.031+9px,0.742-17px" dest="0,17px,9px,1-17px" />
+        <!--right--><Sprite texture="Content/UI/UI_Atlas.png" src="0.441-9px,0.530+17px,0.441,0.742-17px" dest="1-9px,17px,1,1-17px" />
+        <!--top--><Sprite texture="Content/UI/UI_Atlas.png" src="0.031,0.530,0.441,0.530+17px" dest="0,0,1,17px" />
+        <!--bottom--><Sprite texture="Content/UI/UI_Atlas.png" src="0.031,0.742-17px,0.441,0.742" dest="0,1-17px,1,1" />
+        <!--text--><Text str="$text" font="default" rect="0,0,1,1" halign="center" valign="center" />
+    </Template>
+</GUI>

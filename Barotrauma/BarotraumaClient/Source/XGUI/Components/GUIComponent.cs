@@ -10,11 +10,8 @@ namespace Barotrauma.XGUI
 {
     public abstract class GUIComponent : GUIEntity
     {
-        public GUIComponent(GUIEntity creator,XElement elem)
+        public GUIComponent(GUIEntity creator, XElement elem) : base(creator,elem)
         {
-            owner = creator;
-
-            CreateChildrenComponents(elem);
         }
     }
 }
