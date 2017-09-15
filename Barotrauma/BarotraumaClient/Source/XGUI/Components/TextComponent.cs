@@ -27,7 +27,7 @@ namespace Barotrauma.XGUI
 
             if (str[0]=='$')
             {
-                str = parentObject.attribs[str.Substring(1)];
+                if (parentObject.attribs.ContainsKey(str.Substring(1))) str = parentObject.attribs[str.Substring(1)];
             }
 
             rect = new GUIRectangle(ToolBox.GetAttributeVector4(elem, "rect", Vector4.Zero));

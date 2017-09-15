@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace Barotrauma.XGUI
 {
-    public class GUIEntity
+    abstract public class GUIEntity
     {
         public GUIRectangle rect;
         public GUIEntity owner;
@@ -58,6 +58,9 @@ namespace Barotrauma.XGUI
                 {
                     case "Cond":
                         newComponent = new CondComponent(this, elem);
+                        break;
+                    case "Action":
+                        newComponent = new ActionComponent(this, elem);
                         break;
                     case "Sprite":
                         newComponent = new SpriteComponent(this, elem);

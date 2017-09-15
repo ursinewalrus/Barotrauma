@@ -1,8 +1,14 @@
-<GUIMenu name="main">
-    <GUIObject template="Button" rect="0.4,0.43,0.6,0.47" text="Singleplayer" />
+<GUI>
+    <GUIMenu name="main">
+        <GUIObject template="Button" rect="0.4,0.43,0.6,0.47" text="Singleplayer" action="ChangeMenu:singleplayer_start" />
 
-    <GUIObject template="Button" rect="0.4,0.48,0.6,0.52" text="Multiplayer" />
+        <GUIObject template="Button" rect="0.4,0.48,0.6,0.52" text="Multiplayer" />
 
-    <GUIObject template="Button" rect="0.4,0.53,0.495,0.57" text="Settings" />
-    <GUIObject template="Button" rect="0.505,0.53,0.6,0.57" text="Quit" />
-</GUIMenu>
+        <GUIObject template="Button" rect="0.4,0.53,0.495,0.57" text="Settings" />
+        <GUIObject template="Button" rect="0.505,0.53,0.6,0.57" text="Quit" />
+    </GUIMenu>
+
+    <GUIMenu name="singleplayer_start">
+        <GUIObject template="Button" rect="0.4,0.43,0.6,0.47" text="SINGLEPLAYER" /><!-- TODO: implement frame -->
+    </GUIMenu>
+</GUI>

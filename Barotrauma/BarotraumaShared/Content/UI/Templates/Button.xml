@@ -1,26 +1,31 @@
-<GUITemplate name="Button">
-    <Cond Hover="false">
-        <!--body--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.072+3px,0.793-3px,0.112-3px" dest="3px,0,1-3px,1-3px" />
-        <!--ul--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.072,0.667+3px,0.072+3px" dest="0,0,3px,3px" />
-        <!--bl--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.112-3px,0.667+3px,0.112" dest="0,1-3px,3px,1" />
-        <!--left--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.072+3px,0.667+3px,0.112-3px" dest="0,3px,3px,1-3px" />
-        <!--top--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.072,0.793-3px,0.072+3px" dest="3px,0,1-3px,3px" />
-        <!--bottom--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.112-3px,0.793-3px,0.112" dest="3px,1-3px,1-3px,1" />
-        <!--ur--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.072,0.793,0.072+3px" dest="1-3px,0,1,3px" />
-        <!--br--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.112-3px,0.793,0.112" dest="1-3px,1-3px,1,1" />
-        <!--right--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.072+3px,0.793,0.112-3px" dest="1-3px,3px,1,1-3px" />
-        <!--text--><Text str="$text" font="default" rect="0,0,1,1" halign="center" valign="center" />
-    </Cond>
-    <Cond Hover="true">
-        <!--body--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867+3px,0.089+3px,0.993-3px,0.129-3px" dest="3px,0,1-3px,1-3px" />
-        <!--ul--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867,0.089,0.867+3px,0.089+3px" dest="0,0,3px,3px" />
-        <!--bl--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867,0.129-3px,0.867+3px,0.129" dest="0,1-3px,3px,1" />
-        <!--left--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867,0.089+3px,0.867+3px,0.129-3px" dest="0,3px,3px,1-3px" />
-        <!--top--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867+3px,0.089,0.993-3px,0.089+3px" dest="3px,0,1-3px,3px" />
-        <!--bottom--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867+3px,0.129-3px,0.993-3px,0.129" dest="3px,1-3px,1-3px,1" />
-        <!--ur--><Sprite texture="Content/UI/UI_Atlas.png" src="0.993-3px,0.089,0.993,0.089+3px" dest="1-3px,0,1,3px" />
-        <!--br--><Sprite texture="Content/UI/UI_Atlas.png" src="0.993-3px,0.129-3px,0.993,0.129" dest="1-3px,1-3px,1,1" />
-        <!--right--><Sprite texture="Content/UI/UI_Atlas.png" src="0.993-3px,0.089+3px,0.993,0.129-3px" dest="1-3px,3px,1,1-3px" />
-        <!--text--><Text str="$text" font="default" rect="0,0,1,1" halign="center" valign="center" />
-    </Cond>
-</GUITemplate>
+<GUI>
+    <GUITemplate name="Button">
+        <Cond Hover="false">
+            <!--body--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.072+3px,0.793-3px,0.112-3px" dest="3px,0,1-3px,1-3px" />
+            <!--ul--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.072,0.667+3px,0.072+3px" dest="0,0,3px,3px" />
+            <!--bl--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.112-3px,0.667+3px,0.112" dest="0,1-3px,3px,1" />
+            <!--left--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667,0.072+3px,0.667+3px,0.112-3px" dest="0,3px,3px,1-3px" />
+            <!--top--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.072,0.793-3px,0.072+3px" dest="3px,0,1-3px,3px" />
+            <!--bottom--><Sprite texture="Content/UI/UI_Atlas.png" src="0.667+3px,0.112-3px,0.793-3px,0.112" dest="3px,1-3px,1-3px,1" />
+            <!--ur--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.072,0.793,0.072+3px" dest="1-3px,0,1,3px" />
+            <!--br--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.112-3px,0.793,0.112" dest="1-3px,1-3px,1,1" />
+            <!--right--><Sprite texture="Content/UI/UI_Atlas.png" src="0.793-3px,0.072+3px,0.793,0.112-3px" dest="1-3px,3px,1,1-3px" />
+            <!--text--><Text str="$text" font="default" rect="0,0,1,1" halign="center" valign="center" />
+        </Cond>
+        <Cond Hover="true">
+            <!--body--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867+3px,0.089+3px,0.993-3px,0.129-3px" dest="3px,0,1-3px,1-3px" />
+            <!--ul--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867,0.089,0.867+3px,0.089+3px" dest="0,0,3px,3px" />
+            <!--bl--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867,0.129-3px,0.867+3px,0.129" dest="0,1-3px,3px,1" />
+            <!--left--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867,0.089+3px,0.867+3px,0.129-3px" dest="0,3px,3px,1-3px" />
+            <!--top--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867+3px,0.089,0.993-3px,0.089+3px" dest="3px,0,1-3px,3px" />
+            <!--bottom--><Sprite texture="Content/UI/UI_Atlas.png" src="0.867+3px,0.129-3px,0.993-3px,0.129" dest="3px,1-3px,1-3px,1" />
+            <!--ur--><Sprite texture="Content/UI/UI_Atlas.png" src="0.993-3px,0.089,0.993,0.089+3px" dest="1-3px,0,1,3px" />
+            <!--br--><Sprite texture="Content/UI/UI_Atlas.png" src="0.993-3px,0.129-3px,0.993,0.129" dest="1-3px,1-3px,1,1" />
+            <!--right--><Sprite texture="Content/UI/UI_Atlas.png" src="0.993-3px,0.089+3px,0.993,0.129-3px" dest="1-3px,3px,1,1-3px" />
+            <!--text--><Text str="$text" font="default" rect="0,0,1,1" halign="center" valign="center" />
+            <Cond Clicked="true">
+                <Action action="$action" />
+            </Cond>
+        </Cond>
+    </GUITemplate>
+</GUI>

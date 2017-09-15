@@ -105,7 +105,9 @@ namespace Barotrauma.XGUI
         public void LoadTemplates(string filename)
         {
             XDocument doc = ToolBox.TryLoadXml(filename);
-            foreach (XElement elem in doc.Elements())
+            XElement root = doc.Root;
+            if (root.Name != "GUI") return;
+            foreach (XElement elem in root.Elements())
             {
                 if (elem.Name.ToString() != "GUITemplate") continue;
 
@@ -116,7 +118,9 @@ namespace Barotrauma.XGUI
         public void LoadMenus(string filename)
         {
             XDocument doc = ToolBox.TryLoadXml(filename);
-            foreach (XElement elem in doc.Elements())
+            XElement root = doc.Root;
+            if (root.Name != "GUI") return;
+            foreach (XElement elem in root.Elements())
             {
                 if (elem.Name.ToString() != "GUIMenu") continue;
 

@@ -40,6 +40,16 @@ namespace Barotrauma.XGUI
                             if (parentObject.isMouseOn) return false;
                         }
                         break;
+                    case "Clicked":
+                        if (conditions[key] == "true")
+                        {
+                            if (!PlayerInput.LeftButtonClicked()) return false;
+                        }
+                        else if (conditions[key] == "false")
+                        {
+                            if (PlayerInput.LeftButtonClicked()) return false;
+                        }
+                        break;
                 }
             }
             return true;
