@@ -38,7 +38,10 @@ namespace Barotrauma
             public bool Enabled
             {
                 get { return enabled; }
-                set { enabled = value; }
+                set {
+                    enabled = value;
+                    bar.Enabled = value;
+                }
             }
 
             public float BarScroll
@@ -162,6 +165,8 @@ namespace Barotrauma
                 if (!Visible) return;
 
                 base.Update(deltaTime);
+
+                if (!enabled) return;
 
                 if (MouseOn == frame)
                 {

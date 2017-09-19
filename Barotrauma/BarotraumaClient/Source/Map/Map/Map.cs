@@ -45,9 +45,13 @@ namespace Barotrauma
                     {
                         selectedConnection = connection;
                         selectedLocation = highlightedLocation;
-
-                        OnLocationSelected?.Invoke(selectedLocation, selectedConnection);
-                        //GameMain.LobbyScreen.SelectLocation(highlightedLocation, connection);
+                        
+                        //clients aren't allowed to select the location without a permission
+                        if (GameMain.Client == null || GameMain.Client.HasPermission(Networking.ClientPermissions.ManageCampaign))
+                        {
+                            OnLocationSelected?.Invoke(selectedLocation, selectedConnection);
+                            GameMain.Client?.SendCampaignState();
+                        }
                     }
                 }
 
@@ -55,6 +59,7 @@ namespace Barotrauma
                 if (PlayerInput.DoubleClicked() && highlightedLocation != null)
                 {
                     currentLocation = highlightedLocation;
+                    OnLocationChanged?.Invoke(currentLocation);
                 }
 #endif
             }

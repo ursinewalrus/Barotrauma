@@ -82,7 +82,10 @@ namespace Barotrauma
             public bool Enabled
             {
                 get { return enabled; }
-                set { enabled = value; }
+                set {
+                    enabled = value;
+                    scrollBar.Enabled = value;
+                }
             }
 
             public override Color Color
@@ -282,7 +285,7 @@ namespace Barotrauma
 
                 UpdateChildrenRect(deltaTime);
 
-                //base.Update(deltaTime);
+                if (!enabled) return;
 
                 if (scrollBarEnabled && !scrollBarHidden) scrollBar.Update(deltaTime);
 
