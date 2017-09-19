@@ -1,0 +1,5 @@
+<GUI>
+    <Menu name="menuEdit">
+        <Object template="Button" rect="0.03,0.03,0.16,0.13" text="Back" action="MainMenuScreen;ChangeMenu:main" />
+    </Menu>
+</GUI>

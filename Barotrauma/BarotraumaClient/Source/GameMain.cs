@@ -33,6 +33,7 @@ namespace Barotrauma
 
         public static EditMapScreen         EditMapScreen;
         public static EditCharacterScreen   EditCharacterScreen;
+        public static EditMenuScreen        EditMenuScreen;
 
         public static Lights.LightManager LightManager;
         
@@ -233,10 +234,9 @@ namespace Barotrauma
             TitleScreen.LoadState = 1.0f;
 
             //TODO: cleanup?
-            XGUI.LoadTemplates("Content/UI/Templates/Button.xml");
-            XGUI.LoadTemplates("Content/UI/Templates/Frame.xml");
+            XGUI.LoadTemplates("Content/UI/Templates");
 
-            XGUI.LoadMenus("Content/UI/Menus/Main.xml");
+            XGUI.LoadMenus("Content/UI/Menus");
             XGUI.currentMenu = "main";
         yield return CoroutineStatus.Running;
 
@@ -297,6 +297,7 @@ namespace Barotrauma
 
             EditMapScreen       =   new EditMapScreen();
             EditCharacterScreen =   new EditCharacterScreen();
+            EditMenuScreen      =   new EditMenuScreen();
 
         yield return CoroutineStatus.Running;
 

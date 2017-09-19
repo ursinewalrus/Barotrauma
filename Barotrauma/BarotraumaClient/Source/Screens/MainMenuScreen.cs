@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Barotrauma.LegacyGUI;
+using Barotrauma.XGUI;
 
 namespace Barotrauma
 {
@@ -28,6 +29,9 @@ namespace Barotrauma
 
         public MainMenuScreen(GameMain game)
         {
+            ActionComponent.registeredActions.Add("MainMenuScreen", Select);
+            ActionComponent.registeredActions.Add("QuitGame", Quit);
+
             menuTabs = new GUIFrame[Enum.GetValues(typeof(Tab)).Length + 1];
 
             buttonsTab = new GUIFrame(new Rectangle(0, 0, 0, 0), Color.Transparent, Alignment.Left | Alignment.CenterY);
@@ -163,7 +167,7 @@ namespace Barotrauma
 
             if (button != null) button.Selected = true;
             
-            foreach (GUIComponent child in buttonsTab.children)
+            foreach (LegacyGUI.GUIComponent child in buttonsTab.children)
             {
                 GUIButton otherButton = child as GUIButton;
                 if (otherButton == null || otherButton == button) continue;
@@ -293,6 +297,10 @@ namespace Barotrauma
             return true;
         }
 
+        public void Quit(string parameters)
+        {
+            game.Exit();
+        }
 
         private bool QuitClicked(GUIButton button, object obj)
         {
@@ -334,9 +342,9 @@ namespace Barotrauma
             buttonsTab.Draw(spriteBatch);
             if (selectedTab>0) menuTabs[(int)selectedTab].Draw(spriteBatch);
 
-            GUI.Draw((float)deltaTime, spriteBatch, null);
+            LegacyGUI.GUI.Draw((float)deltaTime, spriteBatch, null);
 
-            GUI.Font.DrawString(spriteBatch, "Barotrauma v" + GameMain.Version, new Vector2(10, GameMain.GraphicsHeight - 20), Color.White);
+            LegacyGUI.GUI.Font.DrawString(spriteBatch, "Barotrauma v" + GameMain.Version, new Vector2(10, GameMain.GraphicsHeight - 20), Color.White);
 
             spriteBatch.End();
         }

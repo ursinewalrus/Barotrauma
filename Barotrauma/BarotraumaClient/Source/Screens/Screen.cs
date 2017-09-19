@@ -8,6 +8,13 @@ namespace Barotrauma
 {
     partial class Screen
     {
+        public virtual void Select(string parameters)
+        {
+            DebugConsole.NewMessage(this.GetType().ToString());
+            Select();
+        }
+
+        [System.Obsolete("Barotrauma's GUI is getting replaced")]
         public virtual void AddToGUIUpdateList()
         {
         }

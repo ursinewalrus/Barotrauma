@@ -5,7 +5,9 @@
         <Object template="Button" rect="0.4,0.48,0.6,0.52" text="Multiplayer" />
 
         <Object template="Button" rect="0.4,0.53,0.495,0.57" text="Settings" />
-        <Object template="Button" rect="0.505,0.53,0.6,0.57" text="Quit" />
+        <Object template="Button" rect="0.505,0.53,0.6,0.57" text="Quit" action="QuitGame" />
+
+        <Object template="Button" rect="0.4,0.2,0.6,0.24" text="MENU EDITOR" action="EditMenuScreen;ChangeMenu:menuEdit" />
     </Menu>
 
     <Menu name="singleplayer_start">

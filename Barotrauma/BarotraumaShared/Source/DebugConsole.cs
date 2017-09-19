@@ -912,6 +912,11 @@ namespace Barotrauma
             return null;
         }
 
+        public static void NewMessage(string msg)
+        {
+            NewMessage(msg, Color.White);
+        }
+
         public static void NewMessage(string msg, Color color)
         {
             if (string.IsNullOrEmpty((msg))) return;

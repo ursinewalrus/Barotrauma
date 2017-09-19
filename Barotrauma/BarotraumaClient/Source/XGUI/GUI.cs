@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Xml.Linq;
+using System.IO;
 
 namespace Barotrauma.XGUI
 {
@@ -102,34 +103,40 @@ namespace Barotrauma.XGUI
 
         public string currentMenu = "";
 
-        public void LoadTemplates(string filename)
+        public void LoadTemplates(string directory)
         {
-            XDocument doc = ToolBox.TryLoadXml(filename);
-            XElement root = doc.Root;
-            if (root.Name != "GUI") return;
-            foreach (XElement elem in root.Elements())
+            foreach (string filename in Directory.GetFiles(directory))
             {
-                if (elem.Name.ToString() != "Template") continue;
+                XDocument doc = ToolBox.TryLoadXml(filename);
+                XElement root = doc.Root;
+                if (root.Name != "GUI") return;
+                foreach (XElement elem in root.Elements())
+                {
+                    if (elem.Name.ToString() != "Template") continue;
 
-                templates.Add(ToolBox.GetAttributeString(elem,"name","<no name>"),elem);
+                    templates.Add(ToolBox.GetAttributeString(elem, "name", "<no name>"), elem);
+                }
             }
         }
 
-        public void LoadMenus(string filename)
+        public void LoadMenus(string directory)
         {
-            XDocument doc = ToolBox.TryLoadXml(filename);
-            XElement root = doc.Root;
-            if (root.Name != "GUI") return;
-            foreach (XElement elem in root.Elements())
+            foreach (string filename in Directory.GetFiles(directory))
             {
-                if (elem.Name.ToString() != "Menu") continue;
-
-                List<GUIObject> newMenu = new List<GUIObject>();
-                foreach (XElement objElem in elem.Elements())
+                XDocument doc = ToolBox.TryLoadXml(filename);
+                XElement root = doc.Root;
+                if (root.Name != "GUI") return;
+                foreach (XElement elem in root.Elements())
                 {
-                    newMenu.Add(new GUIObject(this, objElem));
+                    if (elem.Name.ToString() != "Menu") continue;
+
+                    List<GUIObject> newMenu = new List<GUIObject>();
+                    foreach (XElement objElem in elem.Elements())
+                    {
+                        newMenu.Add(new GUIObject(this, objElem));
+                    }
+                    menus.Add(ToolBox.GetAttributeString(elem, "name", "<no name>"), newMenu);
                 }
-                menus.Add(ToolBox.GetAttributeString(elem,"name","<no name>"),newMenu);
             }
         }
 
@@ -138,6 +145,8 @@ namespace Barotrauma.XGUI
             fonts = new Dictionary<string, ScalableFont>();
             templates = new Dictionary<string, XElement>();
             menus = new Dictionary<string, List<GUIObject>>();
+
+            ActionComponent.registeredActions.Add("ChangeMenu", ChangeMenu);
         }
 
         public void Init()

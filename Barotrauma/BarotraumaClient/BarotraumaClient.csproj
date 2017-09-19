@@ -70,6 +70,7 @@
     <Compile Include="Source\Characters\AI\HumanAIController.cs" />
     <Compile Include="Source\Characters\Animation\Ragdoll.cs" />
     <Compile Include="Source\Characters\Attack.cs" />
+    <Compile Include="Source\Screens\EditMenuScreen.cs" />
     <Compile Include="Source\XGUI\Components\ActionComponent.cs" />
     <Compile Include="Source\XGUI\Components\CondComponent.cs" />
     <Compile Include="Source\XGUI\Components\SpriteComponent.cs" />
