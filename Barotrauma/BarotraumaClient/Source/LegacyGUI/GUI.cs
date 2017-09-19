@@ -29,7 +29,7 @@ namespace Barotrauma
             private static Texture2D t;
             public static ScalableFont Font, SmallFont, LargeFont;
 
-            private static Sprite cursor;
+            public static Sprite cursor;
 
             private static GraphicsDevice graphicsDevice;
             public static GraphicsDevice GraphicsDevice
@@ -505,9 +505,6 @@ namespace Barotrauma
                 DebugConsole.Draw(spriteBatch);
 
                 if (GUIComponent.MouseOn != null && !string.IsNullOrWhiteSpace(GUIComponent.MouseOn.ToolTip)) GUIComponent.MouseOn.DrawToolTip(spriteBatch);
-
-                if (!GUI.DisableHUD)
-                    cursor.Draw(spriteBatch, PlayerInput.LatestMousePosition);
             }
 
             public static void AddToGUIUpdateList()

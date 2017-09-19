@@ -437,6 +437,9 @@ namespace Barotrauma
 
             spriteBatch.Begin();
             XGUI.Draw(spriteBatch);
+
+            if (!GUI.DisableHUD && GUI.cursor != null)
+                GUI.cursor.Draw(spriteBatch, PlayerInput.LatestMousePosition);
             spriteBatch.End();
 
             if (!DebugDraw) return;

@@ -9,6 +9,8 @@
     </Menu>
 
     <Menu name="singleplayer_start">
-        <Object template="Frame" rect="0.2,0.2,0.8,0.8" text="SINGLEPLAYER" />
+        <Object template="Frame" rect="0.2,0.2,0.8,0.8" text="SINGLEPLAYER">
+            <Object template="Button" rect="0.02,0.06,0.1,0.14" text="Back" action="ChangeMenu:main" />
+        </Object>
     </Menu>
 </GUI>

@@ -46,9 +46,50 @@ namespace Barotrauma.XGUI
             }
             
             if (templateName == "") return;
+            name = templateName;
 
             XElement templateElem = GetXGUI().templates[templateName];
-            CreateChildrenEntities(templateElem);
+
+            List<GUIEntity> prevChildren = children;
+            children = CreateChildrenEntities(this,templateElem);
+            if (prevChildren != null)
+            {
+                children.AddRange(prevChildren);
+            }
+        }
+
+        public void ResetMouseOn()
+        {
+            isMouseOn = false;
+            foreach (GUIObject obj in children.OfType<GUIObject>())
+            {
+                obj.ResetMouseOn();
+            }
+        }
+
+        public bool UpdateMouseOn()
+        {
+            for (int i=children.Count-1;i>=0;i--)
+            {
+                if (children[i] is GUIObject)
+                {
+                    GUIObject obj = children[i] as GUIObject;
+                    if (obj.UpdateMouseOn()) return true;
+                }
+            }
+            Rectangle xnaRect = GUIRectangle.ScaleToXNARect(GetScaledRect(), new Rectangle(0, 0, GameMain.GraphicsWidth, GameMain.GraphicsHeight));
+            if (xnaRect.Contains(PlayerInput.MousePosition))
+            {
+                isMouseOn = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            base.Draw(spriteBatch);
         }
     }
 }

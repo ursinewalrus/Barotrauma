@@ -144,24 +144,19 @@ namespace Barotrauma.XGUI
         {
             fonts.Add("default", new ScalableFont("Content/Exo2-Medium.otf",(uint)(14*GameMain.GraphicsHeight/720),graphicsDevice));
         }
-
+        
         public override void Update(float deltaTime) {
             if (!menus.ContainsKey(currentMenu)) return;
 
             foreach (GUIObject obj in menus[currentMenu])
             {
-                obj.isMouseOn = false;
+                obj.ResetMouseOn();
             }
 
             for (int i=menus[currentMenu].Count-1;i>=0;i--)
             {
                 GUIObject obj = menus[currentMenu][i];
-                Rectangle xnaRect = GUIRectangle.ScaleToXNARect(obj.rect, new Rectangle(0, 0, GameMain.GraphicsWidth, GameMain.GraphicsHeight));
-                if (xnaRect.Contains(PlayerInput.MousePosition))
-                {
-                    obj.isMouseOn = true;
-                    break;
-                }
+                if (obj.UpdateMouseOn()) break;
             }
 
             foreach (GUIObject obj in menus[currentMenu])
