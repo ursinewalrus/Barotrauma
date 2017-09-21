@@ -16,7 +16,7 @@ namespace Barotrauma.XGUI
         public string str;
         public string halign;
         public string valign;
-        ScalableFont font;
+        protected ScalableFont font;
 
         public TextComponent(GUIEntity creator, XElement elem) : base(creator, elem)
         {

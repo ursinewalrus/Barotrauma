@@ -97,6 +97,9 @@ namespace Barotrauma.XGUI
                     case "Text":
                         newEntity = new TextComponent(owner, elem);
                         break;
+                    case "TextInput":
+                        newEntity = new TextInputComponent(owner, elem);
+                        break;
                 }
                 if (newEntity != null) entities.Add(newEntity);
             }

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Xml.Linq;
 using System.IO;
+using EventInput;
 
 namespace Barotrauma.XGUI
 {
@@ -97,9 +98,16 @@ namespace Barotrauma.XGUI
     {
         public Dictionary<string, ScalableFont> fonts;
         public GraphicsDevice graphicsDevice;
+
+        private Texture2D blankTex;
         
         public Dictionary<string,XElement> templates;
         public Dictionary<string, List<GUIObject>> menus;
+        
+        public KeyboardDispatcher KeyboardDispatcher
+        {
+            get; private set;
+        }
 
         public string currentMenu = "";
 
@@ -149,11 +157,17 @@ namespace Barotrauma.XGUI
             ActionComponent.registeredActions.Add("ChangeMenu", ChangeMenu);
         }
 
-        public void Init()
+        public void Init(GameWindow window)
         {
             fonts.Add("default", new ScalableFont("Content/Exo2-Medium.otf",(uint)(14*GameMain.GraphicsHeight/720),graphicsDevice));
+
+            // create 1x1 texture for line drawing
+            blankTex = new Texture2D(graphicsDevice, 1, 1);
+            blankTex.SetData(new Color[] { Color.White });// fill the texture with white
+
+            KeyboardDispatcher = new KeyboardDispatcher(window);
         }
-        
+
         public override void Update(float deltaTime) {
             if (!menus.ContainsKey(currentMenu)) return;
 
@@ -180,6 +194,59 @@ namespace Barotrauma.XGUI
             foreach (GUIObject obj in menus[currentMenu])
             {
                 obj.Draw(spriteBatch);
+            }
+        }
+
+        public void DrawLine(SpriteBatch sb, Vector2 start, Vector2 end, Color clr, float depth = 0.0f, int width = 1)
+        {
+            //TODO: replace this with primitives for performance, calculating angles can't be a good idea here
+
+            Vector2 edge = end - start;
+            // calculate angle to rotate line
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+            
+            sb.Draw(blankTex,
+                new Rectangle(// rectangle defines shape of line and position of start of line
+                    (int)start.X,
+                    (int)start.Y,
+                    (int)edge.Length(), //sb will strech the texture to fill this rectangle
+                    width), //width of line, change this to make thicker line
+                null,
+                clr, //colour of line
+                angle,     //angle of line (calulated above)
+                new Vector2(0, 0), // point in line about which to rotate
+                SpriteEffects.None,
+                depth);
+        }
+
+        public void DrawRectangle(SpriteBatch sb, Vector2 start, Vector2 size, Color clr, bool isFilled = false, float depth = 0.0f, int thickness = 1)
+        {
+            if (size.X < 0)
+            {
+                start.X += size.X;
+                size.X = -size.X;
+            }
+            if (size.Y < 0)
+            {
+                start.Y += size.Y;
+                size.Y = -size.Y;
+            }
+            DrawRectangle(sb, new Rectangle((int)start.X, (int)start.Y, (int)size.X, (int)size.Y), clr, isFilled, depth, thickness);
+        }
+
+        public void DrawRectangle(SpriteBatch sb, Rectangle rect, Color clr, bool isFilled = false, float depth = 0.0f, int thickness = 1)
+        {
+            if (isFilled)
+            {
+                sb.Draw(blankTex, rect, null, clr, 0.0f, Vector2.Zero, SpriteEffects.None, depth);
+            }
+            else
+            {
+                sb.Draw(blankTex, new Rectangle(rect.X + thickness, rect.Y, rect.Width - thickness * 2, thickness), null, clr, 0.0f, Vector2.Zero, SpriteEffects.None, depth);
+                sb.Draw(blankTex, new Rectangle(rect.X + thickness, rect.Y + rect.Height - thickness, rect.Width - thickness * 2, thickness), null, clr, 0.0f, Vector2.Zero, SpriteEffects.None, depth);
+
+                sb.Draw(blankTex, new Rectangle(rect.X, rect.Y, thickness, rect.Height), null, clr, 0.0f, Vector2.Zero, SpriteEffects.None, depth);
+                sb.Draw(blankTex, new Rectangle(rect.X + rect.Width - thickness, rect.Y, thickness, rect.Height), null, clr, 0.0f, Vector2.Zero, SpriteEffects.None, depth);
             }
         }
 

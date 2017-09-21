@@ -38,7 +38,7 @@ namespace Barotrauma.XGUI
                         rect = new GUIRectangle(ToolBox.ParseToVector4(attribute.Value));
                         break;
                     default:
-                        DebugConsole.NewMessage(attribute.Name.ToString(),Color.White);
+                        //DebugConsole.NewMessage(attribute.Name.ToString(),Color.White);
                         if (!attribs.ContainsKey(attribute.Name.ToString())) attribs.Add(attribute.Name.ToString(), attribute.Value);
                         else attribs[attribute.Name.ToString()] = attribute.Value;
                         break;

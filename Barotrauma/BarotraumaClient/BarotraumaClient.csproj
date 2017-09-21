@@ -75,6 +75,7 @@
     <Compile Include="Source\XGUI\Components\CondComponent.cs" />
     <Compile Include="Source\XGUI\Components\SpriteComponent.cs" />
     <Compile Include="Source\XGUI\Components\TextComponent.cs" />
+    <Compile Include="Source\XGUI\Components\TextInputComponent.cs" />
     <Compile Include="Source\XGUI\GUI.cs" />
     <Compile Include="Source\XGUI\Components\GUIComponent.cs" />
     <Compile Include="Source\XGUI\GUIEntity.cs" />

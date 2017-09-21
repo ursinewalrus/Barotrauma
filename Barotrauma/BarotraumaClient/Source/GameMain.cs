@@ -219,7 +219,7 @@ namespace Barotrauma
                 DebugConsole.NewMessage("LOADING COROUTINE", Color.Lime);
             }
             XGUI.graphicsDevice = base.GraphicsDevice;
-            XGUI.Init();
+            XGUI.Init(Window);
             GUI.GraphicsDevice = base.GraphicsDevice;
             GUI.Init(Content);
 
