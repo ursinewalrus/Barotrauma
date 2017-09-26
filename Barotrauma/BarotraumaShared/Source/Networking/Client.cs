@@ -16,8 +16,12 @@ namespace Barotrauma.Networking
         Kick = 2,
         [Description("Ban")]
         Ban = 4,
+        [Description("Select submarine")]
+        SelectSub = 8,
+        [Description("Select game mode")]
+        SelectMode = 16,
         [Description("Manage campaign")]
-        ManageCampaign = 8
+        ManageCampaign = 32
     }
 
     class Client
@@ -43,7 +47,6 @@ namespace Barotrauma.Networking
 
         public List<ChatMessage> chatMsgQueue = new List<ChatMessage>();
         public UInt16 lastChatMsgQueueID;
-
 
         //latest chat messages sent by this client
         public List<string> lastSentChatMessages = new List<string>(); 
@@ -76,6 +79,8 @@ namespace Barotrauma.Networking
         public float deleteDisconnectedTimer;
 
         public ClientPermissions Permissions = ClientPermissions.None;
+
+        public bool SpectateOnly;
 
         public Queue<Entity> PendingPositionUpdates
         {

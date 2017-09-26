@@ -113,6 +113,7 @@ namespace Barotrauma
         public Submarine SelectedSub
         {
             get { return subList.SelectedData as Submarine; }
+            set { subList.Select(value); }
         }
 
         public Submarine SelectedShuttle
@@ -385,10 +386,14 @@ namespace Barotrauma
             Character.Controlled = null;
             //GameMain.GameScreen.Cam.TargetPos = Vector2.Zero;
 
-            subList.Enabled = GameMain.Server != null || GameMain.NetworkMember.Voting.AllowSubVoting;
+            subList.Enabled = GameMain.Server != null || GameMain.NetworkMember.Voting.AllowSubVoting ||
+                (GameMain.Client != null && GameMain.Client.HasPermission(ClientPermissions.SelectSub));
             shuttleList.Enabled = subList.Enabled;
-            //playerList.Enabled      = GameMain.Server != null;
-            modeList.Enabled = GameMain.Server != null || GameMain.NetworkMember.Voting.AllowModeVoting;
+
+            modeList.Enabled = 
+                GameMain.Server != null || GameMain.NetworkMember.Voting.AllowModeVoting || 
+                (GameMain.Client != null && GameMain.Client.HasPermission(ClientPermissions.SelectMode));
+
             seedBox.Enabled = GameMain.Server != null;
             serverMessage.Enabled = GameMain.Server != null;
             autoRestartBox.Enabled = GameMain.Server != null;
@@ -410,6 +415,19 @@ namespace Barotrauma
             campaignViewButton = new GUIButton(new Rectangle(0, 0, 130, 30), "Campaign view", Alignment.BottomRight, "", defaultModeContainer);
             campaignViewButton.OnClicked = (btn, obj) => { ToggleCampaignView(true); return true; };
             campaignViewButton.Visible = false;
+
+            if (myPlayerFrame.children.Find(c => c.UserData as string == "playyourself") == null)
+            {
+                var playYourself = new GUITickBox(new Rectangle(0, 0, 20, 20), "Play yourself", Alignment.TopLeft, myPlayerFrame);
+                playYourself.Selected = GameMain.NetworkMember.CharacterInfo != null;
+                playYourself.OnSelected = TogglePlayYourself;
+                playYourself.UserData = "playyourself";
+
+                if (GameMain.NetworkMember.CharacterInfo != null)
+                {
+                    TogglePlayYourself(playYourself);
+                }
+            }
 
             if (IsServer && GameMain.Server != null)
             {
@@ -437,7 +455,6 @@ namespace Barotrauma
                 StartButton = new GUIButton(new Rectangle(0, 0, 80, 30), "Start", Alignment.BottomRight, "", defaultModeContainer);
                 StartButton.OnClicked = GameMain.Server.StartGameClicked;
 
-
                 GUIButton settingsButton = new GUIButton(new Rectangle(-110, 0, 80, 20), "Settings", Alignment.TopRight, "", infoFrame);
                 settingsButton.OnClicked = GameMain.Server.ToggleSettingsFrame;
                 settingsButton.UserData = "settingsButton";
@@ -457,14 +474,6 @@ namespace Barotrauma
                 }
 
                 if (GameModePreset.list.Count > 0 && modeList.Selected == null) modeList.Select(0);
-
-                if (myPlayerFrame.children.Find(c => c.UserData as string == "playyourself") == null)
-                {
-                    var playYourself = new GUITickBox(new Rectangle(0, 0, 20, 20), "Play yourself", Alignment.TopLeft, myPlayerFrame);
-                    playYourself.Selected = GameMain.Server.CharacterInfo != null;
-                    playYourself.OnSelected = TogglePlayYourself;
-                    playYourself.UserData = "playyourself";
-                }
 
                 GameMain.Server.Voting.ResetVotes(GameMain.Server.ConnectedClients);
 
@@ -486,8 +495,6 @@ namespace Barotrauma
                 }
 
                 GameMain.Client.Voting.ResetVotes(GameMain.Client.ConnectedClients);
-
-                UpdatePlayerFrame(GameMain.Client.CharacterInfo);
             }
 
             GameMain.NetworkMember.EndVoteCount = 0;
@@ -508,24 +515,15 @@ namespace Barotrauma
 
         private void UpdatePlayerFrame(CharacterInfo characterInfo)
         {
-            if (myPlayerFrame.children.Count <= 1)
+            if (myPlayerFrame.children.Count <= 2)
             {
                 myPlayerFrame.ClearChildren();
-
-                if (IsServer && GameMain.Server != null)
-                {
-                    var playYourself = new GUITickBox(new Rectangle(0, 0, 20, 20), "Play yourself", Alignment.TopLeft, myPlayerFrame);
-                    playYourself.Selected = GameMain.Server.CharacterInfo != null;
-                    playYourself.OnSelected = TogglePlayYourself;
-                    playYourself.UserData = "playyourself";
-                }
-
-                //new GUITextBlock(new Rectangle(100, 30, 200, 30), "Name: ", "", myPlayerFrame);
-
-                //GUITextBox playerName = new GUITextBox(new Rectangle(100, 55, 0, 20), Alignment.TopLeft, "", myPlayerFrame);
-                //playerName.Text = characterInfo.Name;
-                //playerName.OnEnterPressed += ChangeCharacterName;
-
+                
+                var playYourself = new GUITickBox(new Rectangle(0, 0, 20, 20), "Play yourself", Alignment.TopLeft, myPlayerFrame);
+                playYourself.Selected = GameMain.NetworkMember.CharacterInfo != null;
+                playYourself.OnSelected = TogglePlayYourself;
+                playYourself.UserData = "playyourself";                
+                
                 GUIButton toggleHead = new GUIButton(new Rectangle(0, 50, 15, 15), "<", "", myPlayerFrame);
                 toggleHead.UserData = -1;
                 toggleHead.OnClicked = ToggleHead;
@@ -549,7 +547,6 @@ namespace Barotrauma
 
                 jobList = new GUIListBox(new Rectangle(0, 150, 0, 0), "", myPlayerFrame);
                 jobList.Enabled = false;
-
 
                 int i = 1;
                 foreach (string jobName in GameMain.Config.JobNamePreferences)
@@ -587,32 +584,46 @@ namespace Barotrauma
 
                 UpdateJobPreferences(jobList);
 
-                UpdatePreviewPlayer(characterInfo);
+                UpdatePlayerHead(characterInfo);
             }
         }
-
-        private bool TogglePlayYourself(GUITickBox tickBox)
+        
+        public bool TogglePlayYourself(GUITickBox tickBox)
         {
             if (tickBox.Selected)
             {
-                GameMain.Server.CharacterInfo = new CharacterInfo(Character.HumanConfigFile, GameMain.Server.Name,Gender.None,null);
-                UpdatePlayerFrame(GameMain.Server.CharacterInfo);
+                GameMain.NetworkMember.CharacterInfo = new CharacterInfo(Character.HumanConfigFile, GameMain.NetworkMember.Name, Gender.None, null);
+                UpdatePlayerFrame(GameMain.NetworkMember.CharacterInfo);
             }
             else
             {
                 myPlayerFrame.ClearChildren();
+                
+                GameMain.NetworkMember.CharacterInfo = null;
+                GameMain.NetworkMember.Character = null;
 
-                if (IsServer && GameMain.Server != null)
-                {
-                    GameMain.Server.CharacterInfo = null;
-                    GameMain.Server.Character = null;
+                new GUITextBlock(Rectangle.Empty, "Playing as a spectator", "", Alignment.Center, Alignment.Center, myPlayerFrame, true);
 
-                    var playYourself = new GUITickBox(new Rectangle(0, 0, 20, 20), "Play yourself", Alignment.TopLeft, myPlayerFrame);
-                    playYourself.OnSelected = TogglePlayYourself;
-                    playYourself.UserData = "playyourself";
-                }
+                var playYourself = new GUITickBox(new Rectangle(0, 0, 20, 20), "Play yourself", Alignment.TopLeft, myPlayerFrame);
+                playYourself.OnSelected = TogglePlayYourself;
+                playYourself.UserData = "playyourself";
             }
             return false;
+        }
+
+        public void SetAllowSpectating(bool allowSpectating)
+        {
+            GUITickBox playYourselfTickBox = myPlayerFrame?.FindChild("playyourself") as GUITickBox;
+            if (playYourselfTickBox == null) return;
+            
+            //show the player config menu if spectating is not allowed
+            if (!playYourselfTickBox.Selected && !allowSpectating)
+            {
+                playYourselfTickBox.Selected = !playYourselfTickBox.Selected;
+                TogglePlayYourself(playYourselfTickBox);
+            }
+            //hide "play yourself" tickbox if spectating is not allowed
+            playYourselfTickBox.Visible = allowSpectating;            
         }
 
         public void SetAutoRestart(bool enabled, float timer = 0.0f)
@@ -758,12 +769,30 @@ namespace Barotrauma
             VoteType voteType;
             if (component.Parent == GameMain.NetLobbyScreen.SubList)
             {
-                if (!GameMain.Client.Voting.AllowSubVoting) return false;
+                if (!GameMain.Client.Voting.AllowSubVoting)
+                {
+                    if (GameMain.Client.HasPermission(ClientPermissions.SelectSub))
+                    {
+                        GameMain.Client.RequestSelectSub(component.Parent.children.IndexOf(component));
+                        return true;
+                    }
+                    return false;
+                }
                 voteType = VoteType.Sub;
             }
             else if (component.Parent == GameMain.NetLobbyScreen.ModeList)
             {
-                if (!GameMain.Client.Voting.AllowModeVoting) return false;
+                if (!((GameModePreset)userData).Votable) return false;
+                if (!GameMain.Client.Voting.AllowModeVoting)
+                {
+                    if (GameMain.Client.HasPermission(ClientPermissions.SelectMode))
+                    {
+                        GameMain.Client.RequestSelectMode(component.Parent.children.IndexOf(component));
+                        return true;
+                    }
+                    return false;
+                }
+
                 voteType = VoteType.Mode;
             }
             else
@@ -842,7 +871,7 @@ namespace Barotrauma
 
                 new GUITextBlock(new Rectangle(0, 25, 150, 15), selectedClient.Connection.RemoteEndPoint.Address.ToString(), "", playerFrameInner);
 
-                var permissionsBox = new GUIFrame(new Rectangle(0, 60, 0, 90), "", playerFrameInner);
+                var permissionsBox = new GUIFrame(new Rectangle(0, 60, 0, 90), null, playerFrameInner);
                 permissionsBox.Padding = new Vector4(5.0f, 5.0f, 5.0f, 5.0f);
                 permissionsBox.UserData = selectedClient;
 
@@ -857,7 +886,7 @@ namespace Barotrauma
 
                     string permissionStr = attributes.Length > 0 ? attributes[0].Description : permission.ToString();
 
-                    var permissionTick = new GUITickBox(new Rectangle(x, y + 20, 15, 15), permissionStr, Alignment.TopLeft, GUI.SmallFont, permissionsBox);
+                    var permissionTick = new GUITickBox(new Rectangle(x, y + 25, 15, 15), permissionStr, Alignment.TopLeft, GUI.SmallFont, permissionsBox);
                     permissionTick.UserData = permission;
                     permissionTick.Selected = selectedClient.HasPermission(permission);
 
@@ -1058,7 +1087,7 @@ namespace Barotrauma
             if ((prevSize == 1.0f && chatBox.BarScroll == 0.0f) || (prevSize < 1.0f && chatBox.BarScroll == 1.0f)) chatBox.BarScroll = 1.0f;
         }
 
-        private void UpdatePreviewPlayer(CharacterInfo characterInfo)
+        private void UpdatePlayerHead(CharacterInfo characterInfo)
         {
             GUIComponent existing = myPlayerFrame.FindChild("playerhead");
             if (existing != null) myPlayerFrame.RemoveChild(existing);
@@ -1075,7 +1104,7 @@ namespace Barotrauma
 
             GameMain.NetworkMember.CharacterInfo.HeadSpriteId += dir;
 
-            UpdatePreviewPlayer(GameMain.NetworkMember.CharacterInfo);
+            UpdatePlayerHead(GameMain.NetworkMember.CharacterInfo);
 
             return true;
         }
@@ -1085,7 +1114,7 @@ namespace Barotrauma
             Gender gender = (Gender)obj;
             GameMain.NetworkMember.CharacterInfo.Gender = gender;
 
-            UpdatePreviewPlayer(GameMain.NetworkMember.CharacterInfo);
+            UpdatePlayerHead(GameMain.NetworkMember.CharacterInfo);
             return true;
         }
 
@@ -1182,6 +1211,10 @@ namespace Barotrauma
 
                     var moneyText = new GUITextBlock(new Rectangle(120,0,200,20), "Money", "", Alignment.BottomLeft, Alignment.TopLeft, campaignContainer);
                     moneyText.TextGetter = campaignUI.GetMoney;
+
+                    var restartText = new GUITextBlock(new Rectangle(-250, -20, 100, 30), "", "", Alignment.BottomRight, Alignment.BottomLeft, campaignContainer);
+                    restartText.Font = GUI.SmallFont;
+                    restartText.TextGetter = AutoRestartText;
                 }
                 modeList.Select(2, true);
             }

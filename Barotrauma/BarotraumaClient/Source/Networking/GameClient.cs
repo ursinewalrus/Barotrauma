@@ -621,11 +621,14 @@ namespace Barotrauma.Networking
                     if (!newPermissions.HasFlag(permission) || permission == ClientPermissions.None) continue;
                     System.Reflection.FieldInfo fi = typeof(ClientPermissions).GetField(permission.ToString());
                     DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
-                    msg += "   - " + attributes[0].Description+"\n";
+                    msg += "   - " + attributes[0].Description + "\n";
                 }
             }
             permissions = newPermissions;
             new GUIMessageBox("Permissions changed", msg).UserData = "permissions";
+
+            GameMain.NetLobbyScreen.SubList.Enabled = Voting.AllowSubVoting || HasPermission(ClientPermissions.SelectSub);
+            GameMain.NetLobbyScreen.ModeList.Enabled = Voting.AllowModeVoting || HasPermission(ClientPermissions.SelectMode);
 
             endRoundButton.Visible = HasPermission(ClientPermissions.EndRound);      
         }
@@ -791,8 +794,7 @@ namespace Barotrauma.Networking
             }
             
             GameMain.NetLobbyScreen.UpdateSubList(GameMain.NetLobbyScreen.SubList, submarines);
-            GameMain.NetLobbyScreen.UpdateSubList(GameMain.NetLobbyScreen.ShuttleList.ListBox, submarines);   
-                  
+            GameMain.NetLobbyScreen.UpdateSubList(GameMain.NetLobbyScreen.ShuttleList.ListBox, submarines);
 
             gameStarted = inc.ReadBoolean();
             bool allowSpectating = inc.ReadBoolean();
@@ -845,6 +847,8 @@ namespace Barotrauma.Networking
                             bool allowSubVoting         = inc.ReadBoolean();
                             bool allowModeVoting        = inc.ReadBoolean();
 
+                            bool allowSpectating        = inc.ReadBoolean();
+
                             YesNoMaybe traitorsEnabled  = (YesNoMaybe)inc.ReadRangedInteger(0, 2);
                             int missionTypeIndex        = inc.ReadRangedInteger(0, Mission.MissionTypes.Count - 1);
                             int modeIndex               = inc.ReadByte();
@@ -886,6 +890,8 @@ namespace Barotrauma.Networking
                                 {
                                     GameMain.NetLobbyScreen.SelectMode(modeIndex);
                                 }
+                                
+                                GameMain.NetLobbyScreen.SetAllowSpectating(allowSpectating);                                
 
                                 GameMain.NetLobbyScreen.LevelSeed = levelSeed;
                                 
@@ -1119,15 +1125,11 @@ namespace Barotrauma.Networking
                     if (GameMain.GameSession.Submarine == null)
                     {
                         var gameSessionDoc = SaveUtil.LoadGameSessionDoc(GameMain.GameSession.SavePath);
-                        string subPath = Path.Combine(SaveUtil.TempPath, ToolBox.GetAttributeString(gameSessionDoc.Root, "submarine", "")) + ".sub";
-
+                        string subPath = Path.Combine(SaveUtil.TempPath, ToolBox.GetAttributeString(gameSessionDoc.Root, "submarine", "")) + ".sub";  
                         GameMain.GameSession.Submarine = new Submarine(subPath, "");
                     }
-                    else
-                    {
-                        SaveUtil.DecompressToDirectory(GameMain.GameSession.SavePath, SaveUtil.TempPath, null);
-                    }
 
+                    SaveUtil.LoadGame(GameMain.GameSession.SavePath, GameMain.GameSession);
                     break;
             }
         }
@@ -1215,6 +1217,7 @@ namespace Barotrauma.Networking
         
         public void WriteCharacterInfo(NetOutgoingMessage msg)
         {
+            msg.Write(characterInfo == null);
             if (characterInfo == null) return;
 
             msg.Write(characterInfo.Gender == Gender.Male);
@@ -1331,6 +1334,51 @@ namespace Barotrauma.Networking
             client.SendMessage(msg, NetDeliveryMethod.ReliableUnordered);
         }
 
+        /// <summary>
+        /// Tell the server to select a submarine (permission required)
+        /// </summary>
+        public void RequestSelectSub(int subIndex)
+        {
+            if (!HasPermission(ClientPermissions.SelectSub)) return;
+            if (subIndex < 0 || subIndex >= GameMain.NetLobbyScreen.SubList.CountChildren)
+            {
+                DebugConsole.ThrowError("Submarine index out of bounds (" + subIndex + ")\n" + Environment.StackTrace);
+                return;
+            }
+
+            NetOutgoingMessage msg = client.CreateMessage();
+            msg.Write((byte)ClientPacketHeader.SERVER_COMMAND);
+            msg.Write((byte)ClientPermissions.SelectSub);
+            msg.Write((UInt16)subIndex);
+            msg.Write((byte)ServerNetObject.END_OF_MESSAGE);
+
+            client.SendMessage(msg, NetDeliveryMethod.ReliableUnordered);
+        }
+
+        /// <summary>
+        /// Tell the server to select a submarine (permission required)
+        /// </summary>
+        public void RequestSelectMode(int modeIndex)
+        {
+            if (!HasPermission(ClientPermissions.SelectMode)) return;
+            if (modeIndex < 0 || modeIndex >= GameMain.NetLobbyScreen.ModeList.CountChildren)
+            {
+                DebugConsole.ThrowError("Gamemode index out of bounds (" + modeIndex + ")\n" + Environment.StackTrace);
+                return;
+            }
+
+            NetOutgoingMessage msg = client.CreateMessage();
+            msg.Write((byte)ClientPacketHeader.SERVER_COMMAND);
+            msg.Write((byte)ClientPermissions.SelectMode);
+            msg.Write((UInt16)modeIndex);
+            msg.Write((byte)ServerNetObject.END_OF_MESSAGE);
+
+            client.SendMessage(msg, NetDeliveryMethod.ReliableUnordered);
+        }
+
+        /// <summary>
+        /// Tell the server to end the round (permission required)
+        /// </summary>
         public void RequestRoundEnd()
         {
             NetOutgoingMessage msg = client.CreateMessage();

@@ -193,17 +193,6 @@ namespace Barotrauma.Networking
                 }
 
                 FinishUPnP();
-
-#if CLIENT
-                if (server.UPnP.Status == UPnPStatus.NotAvailable)
-                {
-                    new GUIMessageBox("Error", "UPnP not available");
-                }
-                else if (server.UPnP.Status == UPnPStatus.Discovering)
-                {
-                    new GUIMessageBox("Error", "UPnP discovery timed out");
-                }
-#endif
             }
 
             if (isPublic)
@@ -379,9 +368,9 @@ namespace Barotrauma.Networking
                     (myCharacter == null || myCharacter.IsDead || myCharacter.IsUnconscious);
 
                 //restart if all characters are dead or submarine is at the end of the level
-                if ((autoRestart && isCrewDead) 
-                    || 
-                    (EndRoundAtLevelEnd && Submarine.MainSub != null && Submarine.MainSub.AtEndPosition && Submarine.MainSubs[1]==null))
+                if ((autoRestart && isCrewDead)
+                    ||
+                    (EndRoundAtLevelEnd && Submarine.MainSub != null && Submarine.MainSub.AtEndPosition && Submarine.MainSubs[1] == null))
                 {
                     if (AutoRestart && isCrewDead)
                     {
@@ -784,6 +773,22 @@ namespace Barotrauma.Networking
                         EndGame();
                     }
                     break;
+                case ClientPermissions.SelectSub:
+                    UInt16 subIndex = inc.ReadUInt16();
+                    var subList = GameMain.NetLobbyScreen.GetSubList();
+                    if (subIndex >= subList.Count)
+                    {
+                        DebugConsole.NewMessage("Client \"" + sender.name + "\" attempted to select a sub, index out of bounds (" + subIndex + ")", Color.Red);
+                    }
+                    else
+                    {
+                        GameMain.NetLobbyScreen.SelectedSub = subList[subIndex];
+                    }
+                    break;
+                case ClientPermissions.SelectMode:
+                    UInt16 modeIndex = inc.ReadUInt16();
+                    var modeList = GameMain.NetLobbyScreen.SelectedModeIndex = modeIndex;
+                    break;
                 case ClientPermissions.ManageCampaign:
                     MultiplayerCampaign campaign = GameMain.GameSession.GameMode as MultiplayerCampaign;
                     if (campaign != null)
@@ -950,6 +955,8 @@ namespace Barotrauma.Networking
                 outmsg.Write(Voting.AllowSubVoting);
                 outmsg.Write(Voting.AllowModeVoting);
 
+                outmsg.Write(AllowSpectating);
+
                 outmsg.WriteRangedInteger(0, 2, (int)TraitorsEnabled);
 
                 outmsg.WriteRangedInteger(0, Mission.MissionTypes.Count - 1, (GameMain.NetLobbyScreen.MissionTypeIndex));
@@ -1015,6 +1022,8 @@ namespace Barotrauma.Networking
                 //and assume the message was received, so we don't have to keep resending
                 //these large initial messages until the client acknowledges receiving them
                 c.lastRecvGeneralUpdate++;
+                
+                SendVoteStatus(new List<Client>() { c });
             }
             else
             {
@@ -1205,8 +1214,12 @@ namespace Barotrauma.Networking
             for (int teamID = 1; teamID <= teamCount; teamID++)
             {
                 //find the clients in this team
-                List<Client> teamClients = teamCount == 1 ? connectedClients : connectedClients.FindAll(c => c.TeamID == teamID);
-                
+                List<Client> teamClients = teamCount == 1 ? new List<Client>(connectedClients) : connectedClients.FindAll(c => c.TeamID == teamID);
+                if (AllowSpectating)
+                {
+                    teamClients.RemoveAll(c => c.SpectateOnly);
+                }
+
                 if (!teamClients.Any() && teamID > 1) continue;
 
                 AssignJobs(teamClients, teamID == hostTeam);
@@ -1573,11 +1586,13 @@ namespace Barotrauma.Networking
             Log(msg, ServerLog.MessageType.ServerMessage);
 
             client.Connection.Disconnect(targetmsg);
+            connectedClients.Remove(client);
 
 #if CLIENT
-            GameMain.NetLobbyScreen.RemovePlayer(client.name);        
+            GameMain.NetLobbyScreen.RemovePlayer(client.name);
+            Voting.UpdateVoteTexts(connectedClients, VoteType.Sub);
+            Voting.UpdateVoteTexts(connectedClients, VoteType.Mode);
 #endif
-            connectedClients.Remove(client);
 
             UpdateVoteStatus();
 
@@ -1865,14 +1880,8 @@ namespace Barotrauma.Networking
             }
 
             GameMain.NetLobbyScreen.LastUpdateID++;
-
-            NetOutgoingMessage msg = server.CreateMessage();
-            msg.Write((byte)ServerPacketHeader.UPDATE_LOBBY);
-            msg.Write((byte)ServerNetObject.VOTE);
-            Voting.ServerWrite(msg);
-            msg.Write((byte)ServerNetObject.END_OF_MESSAGE);
-
-            server.SendMessage(msg, connectedClients.Select(c => c.Connection).ToList(), NetDeliveryMethod.ReliableUnordered, 0);
+            
+            SendVoteStatus(connectedClients);
 
             if (Voting.AllowEndVoting && EndVoteMax > 0 &&
                 ((float)EndVoteCount / (float)EndVoteMax) >= EndVoteRequiredRatio)
@@ -1880,6 +1889,17 @@ namespace Barotrauma.Networking
                 Log("Ending round by votes (" + EndVoteCount + "/" + (EndVoteMax - EndVoteCount) + ")", ServerLog.MessageType.ServerMessage);
                 EndGame();
             }
+        }
+
+        public void SendVoteStatus(List<Client> recipients)
+        {
+            NetOutgoingMessage msg = server.CreateMessage();
+            msg.Write((byte)ServerPacketHeader.UPDATE_LOBBY);
+            msg.Write((byte)ServerNetObject.VOTE);
+            Voting.ServerWrite(msg);
+            msg.Write((byte)ServerNetObject.END_OF_MESSAGE);
+
+            server.SendMessage(msg, recipients.Select(c => c.Connection).ToList(), NetDeliveryMethod.ReliableUnordered, 0);
         }
 
         public void UpdateClientPermissions(Client client)
@@ -1938,6 +1958,12 @@ namespace Barotrauma.Networking
 
         private void UpdateCharacterInfo(NetIncomingMessage message, Client sender)
         {
+            sender.SpectateOnly = message.ReadBoolean() && AllowSpectating;
+            if (sender.SpectateOnly)
+            {
+                return;
+            }
+
             Gender gender = Gender.Male;
             int headSpriteId = 0;
             try

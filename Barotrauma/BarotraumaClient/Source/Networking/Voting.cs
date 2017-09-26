@@ -15,16 +15,18 @@ namespace Barotrauma
             {
                 if (value == allowSubVoting) return;
                 allowSubVoting = value;
-                GameMain.NetLobbyScreen.SubList.Enabled = value || GameMain.Server != null;
+                GameMain.NetLobbyScreen.SubList.Enabled = value || GameMain.Server != null ||
+                    (GameMain.Client != null && GameMain.Client.HasPermission(ClientPermissions.SelectSub));
                 GameMain.NetLobbyScreen.InfoFrame.FindChild("subvotes", true).Visible = value;
 
                 if (GameMain.Server != null)
                 {
-                    UpdateVoteTexts(GameMain.Server.ConnectedClients, VoteType.Sub);
+                    UpdateVoteTexts(value ? GameMain.Server.ConnectedClients : null, VoteType.Sub);
                     GameMain.Server.UpdateVoteStatus();
                 }
                 else
                 {
+                    UpdateVoteTexts(null, VoteType.Sub);
                     GameMain.NetLobbyScreen.SubList.Deselect();
                 }
             }
@@ -36,15 +38,28 @@ namespace Barotrauma
             {
                 if (value == allowModeVoting) return;
                 allowModeVoting = value;
-                GameMain.NetLobbyScreen.ModeList.Enabled = value || GameMain.Server != null;
+                GameMain.NetLobbyScreen.ModeList.Enabled = 
+                    value || GameMain.Server != null || 
+                    (GameMain.Client != null && GameMain.Client.HasPermission(ClientPermissions.SelectMode));
+
                 GameMain.NetLobbyScreen.InfoFrame.FindChild("modevotes", true).Visible = value;
+
+                //gray out modes that can't be voted
+                foreach (GUITextBlock comp in GameMain.NetLobbyScreen.ModeList.children)
+                {
+                    comp.TextColor =
+                        new Color(comp.TextColor.R, comp.TextColor.G, comp.TextColor.B, 
+                            !allowModeVoting || ((GameModePreset)comp.UserData).Votable ? (byte)255 : (byte)100);
+                }
+
                 if (GameMain.Server != null)
                 {
-                    UpdateVoteTexts(GameMain.Server.ConnectedClients, VoteType.Mode);
+                    UpdateVoteTexts(value ? GameMain.Server.ConnectedClients : null, VoteType.Mode);
                     GameMain.Server.UpdateVoteStatus();
                 }
                 else
                 {
+                    UpdateVoteTexts(null, VoteType.Mode);
                     GameMain.NetLobbyScreen.ModeList.Deselect();
                 }
             }
@@ -55,16 +70,19 @@ namespace Barotrauma
             GUIListBox listBox = (voteType == VoteType.Sub) ?
                 GameMain.NetLobbyScreen.SubList : GameMain.NetLobbyScreen.ModeList;
 
-            foreach (GUIComponent comp in listBox.children)
+            foreach (GUITextBlock comp in listBox.children)
             {
                 GUITextBlock voteText = comp.FindChild("votes") as GUITextBlock;
                 if (voteText != null) comp.RemoveChild(voteText);
             }
 
-            List<Pair<object, int>> voteList = GetVoteList(voteType, clients);
-            foreach (Pair<object, int> votable in voteList)
+            if (clients != null)
             {
-                SetVoteText(listBox, votable.First, votable.Second);
+                List<Pair<object, int>> voteList = GetVoteList(voteType, clients);
+                foreach (Pair<object, int> votable in voteList)
+                {
+                    SetVoteText(listBox, votable.First, votable.Second);
+                }
             }
         }
 
@@ -128,10 +146,7 @@ namespace Barotrauma
             AllowSubVoting = inc.ReadBoolean();
             if (allowSubVoting)
             {
-                foreach (Submarine sub in Submarine.SavedSubmarines)
-                {
-                    SetVoteText(GameMain.NetLobbyScreen.SubList, sub, 0);
-                }
+                UpdateVoteTexts(null, VoteType.Sub);
                 int votableCount = inc.ReadByte();
                 for (int i = 0; i < votableCount; i++)
                 {
@@ -144,6 +159,7 @@ namespace Barotrauma
             AllowModeVoting = inc.ReadBoolean();
             if (allowModeVoting)
             {
+                UpdateVoteTexts(null, VoteType.Mode);
                 int votableCount = inc.ReadByte();
                 for (int i = 0; i < votableCount; i++)
                 {
