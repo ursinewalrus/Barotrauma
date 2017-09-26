@@ -79,8 +79,6 @@ namespace Barotrauma.XGUI
 
                 pos.X = (float)Math.Round(pos.X); pos.Y = (float)Math.Round(pos.Y);
                 Select();
-
-                float charWidth = font.MeasureString("T").X;
                 
                 int newCaretPos = 0;
                 for (int i=1;i<=str.Length;i++)
