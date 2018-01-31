@@ -68,6 +68,7 @@ namespace Barotrauma.Lights
     {
         public SegmentPoint Start;
         public SegmentPoint End;
+        public ConvexHull Hull;
 
         public bool IsHorizontal;
 
@@ -283,6 +284,7 @@ namespace Barotrauma.Lights
             for (int i = 0; i < 4; i++)
             {
                 segments[i] = new Segment(vertices[i], vertices[(i + 1) % 4]);
+                segments[i].Hull = this;
             }
             
             int margin = 0;

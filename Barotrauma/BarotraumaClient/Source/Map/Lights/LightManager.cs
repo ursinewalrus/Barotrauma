@@ -45,14 +45,14 @@ namespace Barotrauma.Lights
         
         private static Texture2D alphaClearTexture;
 
-        private List<LightSource> lights;
+        public List<LightSource> lights;
 
         public bool LosEnabled = true;
 
         public bool LightingEnabled = true;
 
         public bool ObstructVision;
-        LightSource losSource;
+        public LightSource losSource;
 
         private Sprite visionCircle;
         
@@ -60,6 +60,8 @@ namespace Barotrauma.Lights
         private Dictionary<Hull, Color> smoothedHullAmbientLights;
 
         private float ambientLightUpdateTimer;
+
+
 
         public LightManager(GraphicsDevice graphics, ContentManager content)
         {
@@ -264,7 +266,7 @@ namespace Barotrauma.Lights
             graphics.BlendState = BlendState.Additive;
 
             Vector2 pos = ViewTarget.Position;
-            losSource.Position = pos;
+            losSource.Position = pos;// Vector2.UnitX*0.005f;
             losSource.NeedsRecalculation = true;
             losSource.ParentSub = ViewTarget.Submarine;
 

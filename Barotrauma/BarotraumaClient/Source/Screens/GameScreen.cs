@@ -244,6 +244,16 @@ namespace Barotrauma
 			}
 			spriteBatch.Draw(renderTargetFinal, new Rectangle(0, 0, GameMain.GraphicsWidth, GameMain.GraphicsHeight), Color.White);
 			spriteBatch.End();
+            
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, null, null, cam.Transform);
+
+            GameMain.LightManager.losSource.DebugDraw(spriteBatch);
+            foreach (Lights.LightSource ls in GameMain.LightManager.lights)
+            {
+                continue;
+                ls.DebugDraw(spriteBatch);
+            }
+			spriteBatch.End();
         }
     }
 }

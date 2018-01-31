@@ -295,7 +295,7 @@ namespace Barotrauma.Lights
             }
         }
 
-        private List<Vector2> FindRaycastHits()
+        private List<Pair<Vector2, bool>> FindRaycastHits()
         {
             if (!CastShadows)
             {
@@ -321,7 +321,23 @@ namespace Barotrauma.Lights
                 hull.RefreshWorldPositions();
 
                 var visibleHullSegments = hull.GetVisibleSegments(drawPos);
-                visibleSegments.AddRange(visibleHullSegments);
+
+
+
+                foreach (var segment in visibleHullSegments)
+                {
+                    if (segment.Start.Pos.X == segment.End.Pos.X)
+                    {
+                        if (Math.Abs(segment.Start.Pos.X - position.X) < 1.0f) continue;
+                    }
+                    else if (segment.Start.Pos.Y == segment.End.Pos.Y)
+                    {
+                        if (Math.Abs(segment.Start.Pos.Y - position.Y) < 1.0f) continue;
+                    }
+                    visibleSegments.Add(segment);
+                }
+
+                //visibleSegments.AddRange(visibleHullSegments);
             }
 
             //Generate new points at the intersections between segments
@@ -413,8 +429,8 @@ namespace Barotrauma.Lights
                 }
                 DebugConsole.ThrowError(sb.ToString(), e);
             }
-            
-            List<Vector2> output = new List<Vector2>();
+
+            List<Pair<Vector2, bool>> output = new List<Pair<Vector2, bool>>();
             //List<Pair<int, Vector2>> preOutput = new List<Pair<int, Vector2>>();
 
             //remove points that are very close to each other
@@ -431,31 +447,39 @@ namespace Barotrauma.Lights
             foreach (SegmentPoint p in points)
             {
                 Vector2 dir = Vector2.Normalize(p.WorldPos - drawPos);
+
                 Vector2 dirNormal = new Vector2(-dir.Y, dir.X) * 3;
 
                 //do two slightly offset raycasts to hit the segment itself and whatever's behind it
                 Pair<int,Vector2> intersection1 = RayCast(drawPos, drawPos + dir * bounds * 2 - dirNormal, visibleSegments);
                 Pair<int,Vector2> intersection2 = RayCast(drawPos, drawPos + dir * bounds * 2 + dirNormal, visibleSegments);
 
-                if (intersection1.First < 0) return new List<Vector2>();
-                if (intersection2.First < 0) return new List<Vector2>();
+                if (intersection1.First < 0) return new List<Pair<Vector2, bool>>();
+                if (intersection2.First < 0) return new List<Pair<Vector2, bool>>();
                 Segment seg1 = visibleSegments[intersection1.First];
                 Segment seg2 = visibleSegments[intersection2.First];
                 
                 bool isPoint1 = MathUtils.LineToPointDistance(seg1.Start.WorldPos, seg1.End.WorldPos, p.WorldPos) < 5.0f;
                 bool isPoint2 = MathUtils.LineToPointDistance(seg2.Start.WorldPos, seg2.End.WorldPos, p.WorldPos) < 5.0f;
 
-                if (isPoint1 && isPoint2)
+
+                bool point1Further = 
+                    Vector2.DistanceSquared(drawPos, intersection1.Second) > 
+                    Vector2.DistanceSquared(drawPos, intersection2.Second);
+
+                if (isPoint1 && isPoint2)/* || 
+                    isPoint1 && point1Further ||
+                    isPoint2 && !point1Further)*/
                 {
                     //hit at the current segmentpoint -> place the segmentpoint into the list
-                    output.Add(p.WorldPos);
+                    output.Add(Pair<Vector2, bool>.Create(p.WorldPos, true));
                 }
                 else if (intersection1.First != intersection2.First)
                 {
                     //the raycasts landed on different segments
                     //we definitely want to generate new geometry here
-                    output.Add(isPoint1 ? p.WorldPos : intersection1.Second);
-                    output.Add(isPoint2 ? p.WorldPos : intersection2.Second);
+                    output.Add(Pair<Vector2, bool>.Create(isPoint1 ? p.WorldPos : intersection1.Second, isPoint1 || !point1Further));
+                    output.Add(Pair<Vector2, bool>.Create(isPoint2 ? p.WorldPos : intersection2.Second, isPoint2 || point1Further));
                 }
                 //if neither of the conditions above are met, we just assume
                 //that the raycasts both resulted on the same segment
@@ -465,11 +489,11 @@ namespace Barotrauma.Lights
             //remove points that are very close to each other
             for (int i = 0; i < output.Count - 1; i++)
             {
-                if (Math.Abs(output[i].X - output[i + 1].X) < 6 &&
-                    Math.Abs(output[i].Y - output[i + 1].Y) < 6)
+                if (Math.Abs(output[i].First.X - output[i + 1].First.X) < 6 &&
+                    Math.Abs(output[i].First.Y - output[i + 1].First.Y) < 6)
                 {
-                    output.RemoveAt(i + 1);
-                    i--;
+                    //output.RemoveAt(i + 1);
+                    //i--;
                 }
             }
 
@@ -505,7 +529,7 @@ namespace Barotrauma.Lights
             return retVal;
         }
 
-        private void CalculateLightVertices(List<Vector2> rayCastHits)
+        private void CalculateLightVertices(List<Pair<Vector2, bool>> rayCastHits)
         {
             List<VertexPositionColorTexture> vertices = new List<VertexPositionColorTexture>();
 
@@ -531,13 +555,13 @@ namespace Barotrauma.Lights
             // storing their world position as UV coordinates
             for (int i = 0; i < rayCastHits.Count; i++)
             {
-                Vector2 vertex = rayCastHits[i];
+                Vector2 vertex = rayCastHits[i].First;
                 
                 //we'll use the previous and next vertices to calculate the normals
                 //of the two segments this vertex belongs to
                 //so we can add new vertices based on these normals
-                Vector2 prevVertex = rayCastHits[i > 0 ? i - 1 : rayCastHits.Count - 1];
-                Vector2 nextVertex = rayCastHits[i < rayCastHits.Count - 1 ? i + 1 : 0];
+                Vector2 prevVertex = rayCastHits[i > 0 ? i - 1 : rayCastHits.Count - 1].First;
+                Vector2 nextVertex = rayCastHits[i < rayCastHits.Count - 1 ? i + 1 : 0].First;
                 
                 Vector2 rawDiff = vertex - drawPos;
                 Vector2 diff = rawDiff;
@@ -555,26 +579,27 @@ namespace Barotrauma.Lights
                 }
                 
                 //calculate normal of first segment
-                Vector2 nDiff1 = vertex - nextVertex;
+                Vector2 nDiff1 = Vector2.Normalize(vertex - nextVertex);
                 float tx = nDiff1.X; nDiff1.X = -nDiff1.Y; nDiff1.Y = tx;
-                nDiff1 /= Math.Max(Math.Abs(nDiff1.X), Math.Abs(nDiff1.Y));
+                //nDiff1 /= Math.Max(Math.Abs(nDiff1.X), Math.Abs(nDiff1.Y));
                 //if the normal is pointing towards the light origin
                 //rather than away from it, invert it
-                if (Vector2.DistanceSquared(nDiff1, rawDiff) > Vector2.DistanceSquared(-nDiff1, rawDiff)) nDiff1 = -nDiff1;
+                if (Vector2.Dot(nDiff1, rawDiff) < 0) nDiff1 = -nDiff1;
                 
                 //calculate normal of second segment
-                Vector2 nDiff2 = prevVertex - vertex;
+                Vector2 nDiff2 = Vector2.Normalize(prevVertex - vertex);
                 tx = nDiff2.X; nDiff2.X = -nDiff2.Y; nDiff2.Y = tx;
-                nDiff2 /= Math.Max(Math.Abs(nDiff2.X),Math.Abs(nDiff2.Y));
+                //nDiff2 /= Math.Max(Math.Abs(nDiff2.X),Math.Abs(nDiff2.Y));
                 //if the normal is pointing towards the light origin
                 //rather than away from it, invert it
-                if (Vector2.DistanceSquared(nDiff2, rawDiff) > Vector2.DistanceSquared(-nDiff2, rawDiff)) nDiff2 = -nDiff2;
+                if (Vector2.Dot(nDiff2, rawDiff) < 0) nDiff2 = -nDiff2;
                 
                 //add the normals together and use some magic numbers to create
                 //a somewhat useful/good-looking blur
-                Vector2 nDiff = nDiff1 + nDiff2;
-                nDiff /= Math.Max(Math.Abs(nDiff.X), Math.Abs(nDiff.Y));
-                nDiff *= 50.0f;
+                Vector2 nDiff = Vector2.Normalize(nDiff1 + nDiff2);
+                //nDiff /= Math.Max(Math.Abs(nDiff.X), Math.Abs(nDiff.Y));
+                nDiff *= (rayCastHits[i].Second ? 0.0f : 50.0f);
+                //nDiff = Vector2.UnitY    * 50;
 
                 //finally, create the vertices
                 VertexPositionColorTexture fullVert = new VertexPositionColorTexture(new Vector3(position.X + rawDiff.X, position.Y + rawDiff.Y, 0),
@@ -637,10 +662,16 @@ namespace Barotrauma.Lights
                 lightVolumeBuffer = new DynamicVertexBuffer(GameMain.Instance.GraphicsDevice, VertexPositionColorTexture.VertexDeclaration, (int)(vertexCount*1.5), BufferUsage.None);
                 lightVolumeIndexBuffer = new DynamicIndexBuffer(GameMain.Instance.GraphicsDevice, typeof(short), (int)(indexCount * 1.5), BufferUsage.None);
             }
-            
+
+            this.indices = indices;
+            this.vertices = vertices;
+
             lightVolumeBuffer.SetData<VertexPositionColorTexture>(vertices.ToArray());
             lightVolumeIndexBuffer.SetData<short>(indices.ToArray());
-        }     
+        }
+
+        private List<short> indices = new List<short>();
+        private List<VertexPositionColorTexture> vertices = new List<VertexPositionColorTexture>();
 
         public void Draw(SpriteBatch spriteBatch, BasicEffect lightEffect, Matrix transform)
         {
@@ -658,7 +689,7 @@ namespace Barotrauma.Lights
             if (ParentSub != null) drawPos += ParentSub.DrawPosition;
 
             drawPos.Y = -drawPos.Y;
-            
+
             if (LightSprite != null)
             {
                 Vector2 origin = LightSprite.Origin;
@@ -684,7 +715,7 @@ namespace Barotrauma.Lights
                 return;
             }
 
-            if (NeedsRecalculation)
+            if (NeedsRecalculation || true)
             {
                 var verts = FindRaycastHits();
                 CalculateLightVertices(verts);
@@ -715,6 +746,91 @@ namespace Barotrauma.Lights
             );
         }
         
+        public void DebugDraw(SpriteBatch spriteBatch)
+        {
+            var verts2 = FindRaycastHits();
+            if (verts2 == null) return;
+
+            Vector2 drawPos = position;
+            if (ParentSub != null) drawPos += ParentSub.DrawPosition;
+
+            drawPos.Y = -drawPos.Y;
+            {
+                int i = 0;
+                foreach (Pair<Vector2, bool> vert in verts2)
+                {
+                    GUI.DrawString(spriteBatch, new Vector2(vert.First.X + 5, -vert.First.Y - 25 - i*5), i.ToString(), vert.Second ? Color.White : Color.Magenta);
+
+                    GUI.DrawLine(spriteBatch, new Vector2(vert.First.X, -vert.First.Y + 5), drawPos, vert.Second ? Color.White : Color.Magenta);
+                    GUI.DrawRectangle(spriteBatch, new Rectangle((int)vert.First.X - 5, (int)-vert.First.Y - 5, 10, 10), vert.Second ? Color.White : Color.Magenta, true);
+                    i++;
+                }
+            }
+
+            List<Vector2> usedPositions = new List<Vector2>();
+
+            for (int i = 0; i<indices.Count - 1; i++)
+            {
+                Vector2 start = new Vector2(vertices[indices[i]].Position.X, vertices[indices[i]].Position.Y);
+                Vector2 end = (i % 3 == 2) ?
+                    new Vector2(vertices[indices[i -2]].Position.X, vertices[indices[i - 2]].Position.Y) :
+                    new Vector2(vertices[indices[i + 1]].Position.X, vertices[indices[i + 1]].Position.Y);
+
+                if (ParentSub != null)
+                {
+                    start += ParentSub.DrawPosition;
+                    end += ParentSub.DrawPosition;
+                }
+
+                
+                start.Y = -start.Y;
+                end.Y = -end.Y;
+
+
+                GUI.DrawString(spriteBatch, new Vector2(start.X + 15, start.Y + usedPositions.Count(p => p == start) * 15),
+                    indices[i].ToString() + "->" + indices[i + 1].ToString(), Color.Yellow);
+                usedPositions.Add(start);
+
+                GUI.DrawLine(spriteBatch, start , end, Color.Yellow);
+
+            }
+
+            /*
+            // Compute the indices to form triangles
+            List<short> indices = new List<short>();
+            for (int i = 0; i < rayCastHits.Count-1; i++)
+            {
+                //main light body
+                indices.Add(0);
+                indices.Add((short)((i*2 + 3) % vertices.Count));
+                indices.Add((short)((i*2 + 1) % vertices.Count));
+                
+                //faded light
+                indices.Add((short)((i*2 + 1) % vertices.Count));
+                indices.Add((short)((i*2 + 3) % vertices.Count));
+                indices.Add((short)((i*2 + 4) % vertices.Count));
+
+                indices.Add((short)((i*2 + 2) % vertices.Count));
+                indices.Add((short)((i*2 + 1) % vertices.Count));
+                indices.Add((short)((i*2 + 4) % vertices.Count));
+            }
+            
+            //main light body
+            indices.Add(0);
+            indices.Add((short)(1));
+            indices.Add((short)(vertices.Count - 2));
+            
+            //faded light
+            indices.Add((short)(1));
+            indices.Add((short)(vertices.Count-1));
+            indices.Add((short)(vertices.Count-2));
+
+            indices.Add((short)(1));
+            indices.Add((short)(2));
+            indices.Add((short)(vertices.Count-1));
+             */
+        }
+
         public void Reset()
         {
             hullsInRange.Clear();
