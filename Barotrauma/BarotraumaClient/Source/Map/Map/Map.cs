@@ -56,6 +56,13 @@ namespace Barotrauma
 
         private Rectangle borders;
 
+
+        public Effect MapEffect
+        {
+            get;
+            private set;
+        }
+
         static Vector2 MapTileSpriteSize = new Vector2(200.0f, 200.0f);
         static Vector2 MapTileSize = new Vector2(MapTileSpriteSize.X * 1.4f, MapTileSpriteSize.Y * 0.4f);
 
@@ -104,26 +111,71 @@ namespace Barotrauma
 
         }
 
-        private Texture2D noiseTexture;
+        private Texture2D overlayNoiseTexture;
+        private Texture2D shaderNoiseTexture;
+
+        private RenderTarget2D mapRenderTarget;
 
         partial void GenerateNoiseMapProjSpecific()
         {
-            if (noiseTexture == null)
+            if (overlayNoiseTexture == null)
             {
-                noiseTexture = new Texture2D(GameMain.Instance.GraphicsDevice, NoiseResolution, NoiseResolution);
+                overlayNoiseTexture = new Texture2D(GameMain.Instance.GraphicsDevice, NoiseResolution, NoiseResolution);
+                shaderNoiseTexture = new Texture2D(GameMain.Instance.GraphicsDevice, NoiseResolution, NoiseResolution);
             }
 
+
+            MapEffect = GameMain.Instance.Content.Load<Effect>("Effects/mapshader");
+            var waterTexture = TextureLoader.FromFile("Content/Map/iceBackground.png");
+            MapEffect.Parameters["xWaterBumpMap"].SetValue(waterTexture);
+
+            mapRenderTarget = new RenderTarget2D(GameMain.Instance.GraphicsDevice, 2048, 2048);
+
+            float z = Rand.Range(0.0f, 1.0f, Rand.RandSync.Server);
+
             Color[] crackTextureData = new Color[NoiseResolution * NoiseResolution];
-            Color[] noiseTextureData = new Color[NoiseResolution * NoiseResolution];
+            Color[] overlayNoiseTextureData = new Color[NoiseResolution * NoiseResolution];
+            Color[] shaderNoiseTextureData = new Color[NoiseResolution * NoiseResolution];
             for (int x = 0; x < NoiseResolution; x++)
             {
                 for (int y = 0; y < NoiseResolution; y++)
                 {
-                    noiseTextureData[x + y * NoiseResolution] = Color.Lerp(Color.Black, Color.Transparent, Noise[x, y]);
+                    overlayNoiseTextureData[x + y * NoiseResolution] = Color.Lerp(Color.Black, Color.Transparent, Noise[x, y]);
+                    shaderNoiseTextureData[x + y * NoiseResolution] = new Color(
+                        (float)PerlinNoise.OctavePerlin((double)x / NoiseResolution, (double)y / NoiseResolution, Noise[0,0], 4, 0.5) / 10.0f,
+                        (float)PerlinNoise.OctavePerlin((double)x / NoiseResolution, (double)y / NoiseResolution, Noise[NoiseResolution / 2, 0], 4, 0.5) / 10.0f,
+                        (float)PerlinNoise.OctavePerlin((double)x / NoiseResolution, (double)y / NoiseResolution, Noise[0, NoiseResolution / 2], 4, 0.5) / 10.0f,
+                        (float)PerlinNoise.OctavePerlin((double)x / NoiseResolution, (double)y / NoiseResolution, Noise[0, NoiseResolution / 2], 4, 0.5) / 10.0f);
                 }
             }
-            noiseTextureData[0] = Color.Red;
-            noiseTextureData[(NoiseResolution - 1) + (NoiseResolution - 1) * NoiseResolution] = Color.Red;
+
+            float minR = float.MaxValue, minG = float.MaxValue, minB = float.MaxValue, minA = float.MaxValue;
+            float maxR = 0, maxG = 0, maxB = 0, maxA = 0;
+            for (int x = 0; x < shaderNoiseTextureData.Length; x++)
+            {
+                minR = Math.Min(shaderNoiseTextureData[x].R / 255.0f, minR);
+                minG = Math.Min(shaderNoiseTextureData[x].G / 255.0f, minG);
+                minB = Math.Min(shaderNoiseTextureData[x].B / 255.0f, minB);
+                minA = Math.Min(shaderNoiseTextureData[x].A / 255.0f, minA);
+                maxR = Math.Max(shaderNoiseTextureData[x].R / 255.0f, maxR);
+                maxG = Math.Max(shaderNoiseTextureData[x].G / 255.0f, maxG);
+                maxB = Math.Max(shaderNoiseTextureData[x].B / 255.0f, maxB);
+                maxA = Math.Max(shaderNoiseTextureData[x].A / 255.0f, maxA);
+            }
+
+            float rangeR = maxR - minR, rangeG = maxG - minG, rangeB = maxB - minB, rangeA = maxA-minA;
+            for (int x = 0; x < shaderNoiseTextureData.Length; x++)
+            {
+                shaderNoiseTextureData[x] = new Color(
+                    (shaderNoiseTextureData[x].R / 255.0f - minR) / rangeR,
+                    (shaderNoiseTextureData[x].G / 255.0f - minG) / rangeG,
+                    (shaderNoiseTextureData[x].B / 255.0f - minB) / rangeB,
+                    (shaderNoiseTextureData[x].A / 255.0f - minA) / rangeA);
+            }
+
+
+            overlayNoiseTextureData[0] = Color.Red;
+            overlayNoiseTextureData[(NoiseResolution - 1) + (NoiseResolution - 1) * NoiseResolution] = Color.Red;
 
             float mapRadius = size / 2;
             Vector2 mapCenter = Vector2.One * mapRadius;
@@ -181,15 +233,17 @@ namespace Barotrauma
                 }
             }
 
-            for (int i = 0; i < noiseTextureData.Length; i++)
+            for (int i = 0; i < overlayNoiseTextureData.Length; i++)
             {
-                float darken = noiseTextureData[i].A / 255.0f;
-                Color pathColor = Color.Lerp(Color.White, Color.Transparent, noiseTextureData[i].A / 255.0f);
-                noiseTextureData[i] =
-                    Color.Lerp(noiseTextureData[i], pathColor, crackTextureData[i].A / 255.0f * 0.5f);
+                float darken = overlayNoiseTextureData[i].A / 255.0f;
+                Color pathColor = Color.Lerp(Color.White, Color.Transparent, overlayNoiseTextureData[i].A / 255.0f);
+                overlayNoiseTextureData[i] =
+                    Color.Lerp(overlayNoiseTextureData[i], pathColor, crackTextureData[i].A / 255.0f * 0.5f);
             }
 
-            noiseTexture.SetData(noiseTextureData);
+            overlayNoiseTexture.SetData(overlayNoiseTextureData);
+            shaderNoiseTexture.SetData(shaderNoiseTextureData);
+            MapEffect.Parameters["xWaterBumpMap"].SetValue(shaderNoiseTexture);
         }
 
         private void LocationChanged(Location prevLocation, Location newLocation)
@@ -262,8 +316,19 @@ namespace Barotrauma
             if (PlayerInput.KeyDown(Keys.D3)) xScale += 0.05f * deltaTime;
             if (PlayerInput.KeyDown(Keys.D4)) yScale -= 0.05f * deltaTime;
             if (PlayerInput.KeyDown(Keys.D5)) yScale += 0.05f * deltaTime;
-            if (PlayerInput.KeyDown(Keys.D6)) randomOffsetScale -= 0.05f * deltaTime;
-            if (PlayerInput.KeyDown(Keys.D7)) randomOffsetScale += 0.05f * deltaTime;
+
+            if (PlayerInput.KeyDown(Keys.D6)) hueNoiseScale -= 0.5f * deltaTime;
+            if (PlayerInput.KeyDown(Keys.D7)) hueNoiseScale += 0.5f * deltaTime;
+
+            if (PlayerInput.KeyDown(Keys.D8)) saturationShift -= 0.1f * deltaTime;
+            if (PlayerInput.KeyDown(Keys.D9)) saturationShift += 0.1f * deltaTime;
+
+            if (PlayerInput.KeyDown(Keys.E)) redHueShift -= 0.1f * deltaTime;
+            if (PlayerInput.KeyDown(Keys.R)) redHueShift += 0.1f * deltaTime;
+            if (PlayerInput.KeyDown(Keys.F)) greenHueShift -= 0.1f * deltaTime;
+            if (PlayerInput.KeyDown(Keys.G)) greenHueShift += 0.1f * deltaTime;
+            if (PlayerInput.KeyDown(Keys.V)) blueHueShift -= 0.1f * deltaTime;
+            if (PlayerInput.KeyDown(Keys.B)) blueHueShift += 0.1f * deltaTime;
 
             Vector2 rectCenter = new Vector2(rect.Center.X, rect.Center.Y);
 
@@ -335,20 +400,19 @@ namespace Barotrauma
         }
 
         private float xScale = 1.0f, yScale = 1.0f, randomOffsetScale = 0.0f;
+        private float redHueShift = 0.1f, greenHueShift = 0.1f, blueHueShift = 0.1f, saturationShift = 0.5f;
+        private float hueNoiseScale = 3.0f;
         private bool drawOverlay = true;
-        
-        public void Draw(SpriteBatch spriteBatch, Rectangle rect)
+
+        public void UpdateMapRenderTarget(SpriteBatch spriteBatch, Rectangle rect)
         {
-            GUI.DrawString(spriteBatch, new Vector2(10, 10), "Num key 1 to toggle location visibility", Color.White);
-            GUI.DrawString(spriteBatch, new Vector2(10, 30), "Num keys 2-5 to edit map tile spacing", Color.White);
-            GUI.DrawString(spriteBatch, new Vector2(10, 50), "Tile spacing: "+xScale+"x"+yScale, Color.White);
-            GUI.DrawString(spriteBatch, new Vector2(10, 70), "Random offset scale: "+ randomOffsetScale, Color.White);
-            
             Vector2 rectCenter = new Vector2(rect.Center.X, rect.Center.Y);
 
-            Rectangle prevScissorRect = GameMain.Instance.GraphicsDevice.ScissorRectangle;
-            GameMain.Instance.GraphicsDevice.ScissorRectangle = rect;
-            
+            spriteBatch.GraphicsDevice.SetRenderTarget(mapRenderTarget);
+            spriteBatch.Begin(SpriteSortMode.Immediate, rasterizerState: GameMain.ScissorTestEnable);
+
+            //GameMain.Instance.GraphicsDevice.ScissorRectangle = rect;
+
             //GUI.DrawRectangle(spriteBatch, rectCenter + (borders.Location.ToVector2() + drawOffset) * zoom, borders.Size.ToVector2() * zoom, Color.CadetBlue, true);
 
             for (int x = 0; x < mapTiles.GetLength(0); x++)
@@ -356,7 +420,7 @@ namespace Barotrauma
                 for (int y = 0; y < mapTiles.GetLength(1); y++)
                 {
                     Vector2 mapPos = new Vector2(
-                        x * MapTileSize.X + ((y % 2 == 0) ? 0.0f : MapTileSize.X * 0.5f), 
+                        x * MapTileSize.X + ((y % 2 == 0) ? 0.0f : MapTileSize.X * 0.5f),
                         y * MapTileSize.Y);
 
                     mapPos.X *= xScale;
@@ -365,20 +429,72 @@ namespace Barotrauma
                     mapPos += mapTiles[x, y].Offset * randomOffsetScale * 100.0f;
 
                     Vector2 scale = new Vector2(
-                        MapTileSpriteSize.X / mapTiles[x, y].Sprite.size.X, 
+                        MapTileSpriteSize.X / mapTiles[x, y].Sprite.size.X,
                         MapTileSpriteSize.Y / mapTiles[x, y].Sprite.size.Y);
                     mapTiles[x, y].Sprite.Draw(spriteBatch, rectCenter + (mapPos + drawOffset) * zoom, Color.White,
                         origin: new Vector2(256.0f, 256.0f), rotate: 0, scale: scale * zoom, spriteEffect: mapTiles[x, y].SpriteEffect);
                 }
             }
 
-            //GUI.DrawRectangle(spriteBatch, rectCenter + (borders.Location.ToVector2() + drawOffset) * zoom, borders.Size.ToVector2() * zoom, Color.White, true);
-            
-            spriteBatch.Draw(noiseTexture, rectCenter + drawOffset * zoom,
+            spriteBatch.Draw(overlayNoiseTexture, rectCenter + drawOffset * zoom,
                 sourceRectangle: null, color: Color.White, rotation: 0.0f, origin: Vector2.Zero,
-                scale: new Vector2(size / (float)noiseTexture.Width, size / (float)noiseTexture.Height) * zoom, 
+                scale: new Vector2(size / (float)overlayNoiseTexture.Width, size / (float)overlayNoiseTexture.Height) * zoom,
                 effects: SpriteEffects.None, layerDepth: 0);
+
+            //GUI.DrawRectangle(spriteBatch, rectCenter + (borders.Location.ToVector2() + drawOffset) * zoom, borders.Size.ToVector2() * zoom, Color.CornflowerBlue, true);
+
+            spriteBatch.End();
+            spriteBatch.GraphicsDevice.SetRenderTarget(null);
+        }
+        
+        public void Draw(SpriteBatch spriteBatch, Rectangle rect)
+        {
+            GUI.DrawString(spriteBatch, new Vector2(10, 10), "Num key 1 to toggle location visibility", Color.White, Color.Black * 0.6f);
+            GUI.DrawString(spriteBatch, new Vector2(10, 30), "Num keys 2-5 to edit map tile spacing", Color.White, Color.Black * 0.6f);
+            GUI.DrawString(spriteBatch, new Vector2(10, 50), "Tile spacing: "+xScale+"x"+yScale, Color.White, Color.Black * 0.6f);
+
+            GUI.DrawString(spriteBatch, new Vector2(10, 70), "Red hue shift (E-R): "+ redHueShift, Color.White, Color.Black * 0.6f);
+            GUI.DrawString(spriteBatch, new Vector2(10, 90), "Green hue shift (F-G): " + greenHueShift, Color.White, Color.Black * 0.6f);
+            GUI.DrawString(spriteBatch, new Vector2(10, 110), "Blue noise scale (V-B): " + blueHueShift, Color.White, Color.Black * 0.6f);
+            GUI.DrawString(spriteBatch, new Vector2(10, 130), "Desaturation strength (8-9): " + saturationShift, Color.White, Color.Black * 0.6f);
+
+            GUI.DrawString(spriteBatch, new Vector2(10, 150), "Hue noise scale (6-7): " + hueNoiseScale, Color.White, Color.Black * 0.6f);
+
+            Vector2 rectCenter = new Vector2(rect.Center.X, rect.Center.Y);
+
+            Rectangle prevScissorRect = GameMain.Instance.GraphicsDevice.ScissorRectangle;
+
+            spriteBatch.End();
             
+
+
+            
+            MapEffect.CurrentTechnique = MapEffect.Techniques["MapDistortPostProcess"];
+            MapEffect.CurrentTechnique.Passes[0].Apply();
+
+            //zoom = 1;
+            float scale = 1.0f / hueNoiseScale;
+            MapEffect.Parameters["xUvOffset"].SetValue(-((rectCenter/zoom+drawOffset) / (mapRenderTarget.Width / scale)));
+            MapEffect.Parameters["xBumpScale"].SetValue(new Vector2(scale, scale) / zoom);
+            MapEffect.Parameters["xRedHueShift"].SetValue(redHueShift);
+            MapEffect.Parameters["xGreenHueShift"].SetValue(greenHueShift);
+            MapEffect.Parameters["xBlueHueShift"].SetValue(blueHueShift);
+            MapEffect.Parameters["xSaturationShift"].SetValue(saturationShift);
+            /*WaterEffect.Parameters["xTexture"].SetValue(renderTargetFinal);
+            WaterEffect.Parameters["xWaveWidth"].SetValue(DistortStrength);
+            WaterEffect.Parameters["xWaveHeight"].SetValue(DistortStrength);
+            WaterEffect.Parameters["xBlurDistance"].SetValue(BlurStrength);*/
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, blendState: BlendState.Opaque, rasterizerState: GameMain.ScissorTestEnable, effect: MapEffect);
+
+            spriteBatch.Draw(mapRenderTarget, rect, rect, Color.White);
+            //spriteBatch.Draw(mapRenderTarget, Vector2.Zero, Color.White);
+
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Immediate, rasterizerState: GameMain.ScissorTestEnable);
+
+            //spriteBatch.Draw(shaderNoiseTexture, Vector2.Zero, Color.White);
+
             if (drawOverlay)
             {
                 for (int i = 0; i < locations.Count; i++)

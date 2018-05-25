@@ -163,6 +163,18 @@ namespace Barotrauma
             }
         }
 
+        public void UpdateMapRenderTarget(SpriteBatch spriteBatch)
+        {
+            if (selectedTab == Tab.Map && GameMain.GameSession?.Map != null)
+            {
+                GameMain.GameSession.Map.UpdateMapRenderTarget(spriteBatch, new Rectangle(
+                    tabs[(int)selectedTab].Rect.X + 20,
+                    tabs[(int)selectedTab].Rect.Y + 20,
+                    tabs[(int)selectedTab].Rect.Width - 310,
+                    tabs[(int)selectedTab].Rect.Height - 40));
+            }
+        }
+
         public void Draw(SpriteBatch spriteBatch)
         {
             if (selectedTab == Tab.Map && GameMain.GameSession?.Map != null)

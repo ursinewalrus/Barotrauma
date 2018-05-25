@@ -123,6 +123,8 @@ namespace Barotrauma
                 UpdateCharacterLists();
             }*/
 
+            campaignUI.UpdateMapRenderTarget(spriteBatch);
+
             graphics.Clear(Color.Black);
             
             spriteBatch.Begin(SpriteSortMode.Immediate, null, null, null, GameMain.ScissorTestEnable);
