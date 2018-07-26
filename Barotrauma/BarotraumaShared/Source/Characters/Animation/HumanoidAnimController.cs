@@ -11,6 +11,8 @@ namespace Barotrauma
     {
         public bool Crouching;
 
+        public bool Jumping;
+
         private bool aiming;
 
         private float walkAnimSpeed;
@@ -172,6 +174,9 @@ namespace Barotrauma
                                    
             switch (Anim)
             {
+                case Animation.Jumping:
+                    UpdateJumping();
+                    break;
                 case Animation.Climbing:
                     levitatingCollider = false;
                     UpdateClimbing();
@@ -564,6 +569,16 @@ namespace Barotrauma
                 Collider.LinearVelocity += Vector2.UnitY * (((Vector2)handle).Y - colliderBottomY + 0.01f) * 50;
                 onGround = true;
             }
+        }
+
+        void UpdateJumping()
+        {
+            //collider velocity
+            Limb leftLeg = GetLimb(LimbType.LeftLeg);
+            Limb rightLeg = GetLimb(LimbType.RightLeg);
+            leftLeg.body.ApplyTorque(10.0f);
+            rightLeg.body.ApplyTorque(10.0f);
+
         }
 
         void UpdateSwimming()

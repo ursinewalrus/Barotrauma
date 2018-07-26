@@ -822,6 +822,17 @@ namespace Barotrauma
                 if (length > 0.0f) targetMovement = targetMovement / length;
             }
 
+            if(AnimController.onGround && ((HumanoidAnimController)AnimController).Jumping)
+            {
+                ((HumanoidAnimController)AnimController).Jumping = false;
+            }
+
+            if(IsKeyDown(InputType.Jump) && AnimController.onGround)
+            {
+                AnimController.Anim = AnimController.Animation.Jumping;
+                ((HumanoidAnimController)AnimController).Jumping = true;
+            }
+
             if (IsKeyDown(InputType.Run))
             {
                 //can't run if
